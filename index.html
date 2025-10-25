@@ -272,8 +272,13 @@
 </head>
 
 <body>
+    <audio id="background-music" loop src="[No Copyright] Free Background Music (Calm Guitar).mp3" preload="auto"></audio>
+    <audio id="click-sound" src="Click Sound Effect.mp3" preload="auto"></audio>
     <div id="aurora-background"></div>
     <div id="canvas-container" style="position: fixed; top: 0; left: 0; z-index: 1;"></div>
+    ```
+
+That's the entire HTML part completed in one go! You can now move on to the JavaScript changes to make the sounds actually play.
 
     <div id="app">
         <div
@@ -304,8 +309,8 @@
                     You</h2>
                 <div class="bento-grid">
                     <div class="anim-child bento-item bento-item-1 p-6 rounded-xl">
-                        <h3 class="text-2xl font-bold text-pink-300 mb-2">💖 Your Infectious Laughter Damn That melts my Heart everytime</h3>
-                        <p class="text-gray-300">It's the most beautiful sound, a melody that brightens even the
+                        <h3 class="text-2xl font-bold text-pink-300 mb-2">💖 Your Infectious Laughter</h3>
+                        <p class="text-gray-300">It's the most beautiful smile Melts my heart everytime a melody that brightens even the
                             darkest days.</p>
                     </div>
                     <div class="anim-child bento-item p-6 rounded-xl">
@@ -322,13 +327,14 @@
             </div>
 
             <div id="step4" class="step max-w-lg text-center">
-                <h2 class="anim-child text-4xl md:text-5xl font-bold text-gradient mb-6">A Snapshot of Yur Story...</h2>
-                <div id="polaroid" class="anim-child mb-6">
-                    <div id="polaroid-inner" class="rounded-lg shadow-2xl">
-                        <img src=https://sl.bing.net/dM1qYN1I8Qe
-                            alt="A special memory" class="w-full h-72 object-cover rounded-md">
-                        <p class="text-center font-semibold mt-4 text-xl italic">"Us" – my favorite chapter.</p>
-                    </div>
+                <h2 class="anim-child text-4xl md:text-5xl font-bold text-gradient mb-6">A Snapshot of Your Story...</h2>
+               <div id="polaroid" class="anim-child mb-6">
+                    <div id="polaroid-inner" class="rounded-lg shadow-2xl">
+                        <img src="magical-heart-wish.jpg"
+                            alt="A special memory" class="w-full h-72 object-cover rounded-md">
+                        <p class="text-center font-semibold mt-4 text-xl italic">"Us" – my favorite chapter.</p>
+                    </div>
+                </div>
                 </div>
                 <p class="anim-child text-gray-300 mb-8 text-lg">Every shared glance, every soft touch, every adventure
                     with you becomes a cherished masterpiece in my heart.</p>
@@ -341,7 +347,7 @@
                 <p class="anim-child text-gray-300 mb-8 text-lg">May this year be filled with boundless joy, new
                     discoveries, and the realization of every dream your beautiful heart holds. You deserve it all.</p>
                 <div class="h-28 flex items-center justify-center">
-                    <p id="final-wish" class="final-wish-text font-bold mt-6">Happy Birthday, My Sweetest Love! ❤️</p>
+                    <p id="final-wish" class="final-wish-text font-bold mt-6">Happy Birthday, My Sweet Heart! ❤️</p>
                 </div>
                 <button id="confetti-btn" class="anim-child btn text-white mt-4">Let's Celebrate!</button>
                 <footer class="anim-child mt-2 text-gray-500 text-sm">Crafted with endless love and a little bit of
