@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Happy Birthday — A Little World For You</title>
 
-  <!-- Tailwind CDN (utility) -->
+  <!-- Tailwind (for convenience; most styles are custom anyway) -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Fonts: Playfair Display (serif) + Inter fallback for Satoshi -->
+  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Three.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
 
-  <!-- GSAP Core -->
+  <!-- GSAP -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
   <!-- canvas-confetti -->
@@ -23,385 +23,143 @@
   <style>
     :root{
       --bg-dark: #0c0a09;
-      --card-bg: rgba(255,255,255,0.04);
-      --glass-border: rgba(255,255,255,0.06);
-      --muted: #dcdcdc;
+      --muted: #e6e6e6;
       --accent-start: #ff7aa2;
       --accent-end: #ff3b6b;
-      --progress-track: rgba(255,255,255,0.04);
-      --glass-shadow: 0 10px 30px rgba(2,2,2,0.6);
-      --glass-blur: 12px;
+      --glass-border: rgba(255,255,255,0.06);
     }
-
-    html,body{
-      height:100%;
-      margin:0;
-      background: var(--bg-dark);
-      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      color:var(--muted);
-      overflow:hidden;
+    html,body{height:100%;margin:0;background:var(--bg-dark);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;color:var(--muted);-webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;overflow:hidden;}
+    /* Aurora background */
+    .aurora{position:fixed;inset:0;z-index:0;pointer-events:none;
+      background:
+        radial-gradient(600px 300px at 10% 20%, hsla(333,70%,55%,.35), transparent 20%),
+        radial-gradient(500px 250px at 80% 30%, hsla(282,82%,54%,.25), transparent 20%),
+        radial-gradient(600px 300px at 40% 80%, hsla(210,89%,60%,.25), transparent 20%),
+        radial-gradient(700px 350px at 60% 50%, hsla(35,90%,60%,.2), transparent 18%),
+        var(--bg-dark);
+      filter: blur(34px) contrast(1.03) saturate(1.06);
+      animation: auroraFlow 20s ease-in-out infinite;
+      mix-blend-mode:screen; opacity:0.95;
     }
-
-    /* Aurora animated gradients (Layer 1) */
-    .aurora {
-      position:fixed;
-      inset:0;
-      background: radial-gradient(600px 300px at 10% 20%, hsla(333,70%,55%,.35), transparent 20%),
-                  radial-gradient(500px 250px at 80% 30%, hsla(282,82%,54%,.25), transparent 20%),
-                  radial-gradient(600px 300px at 40% 80%, hsla(210,89%,60%,.25), transparent 20%),
-                  radial-gradient(700px 350px at 60% 50%, hsla(35,90%,60%,.2), transparent 18%),
-                  var(--bg-dark);
-      filter: blur(35px) contrast(1.05) saturate(1.1);
-      z-index:0;
-      pointer-events:none;
-      animation: auroraFlow 18s linear infinite;
-      transform:translateZ(0);
-      mix-blend-mode: screen;
-      opacity:0.95;
-    }
-    @keyframes auroraFlow {
-      0%{ background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%; filter: blur(34px) contrast(1.02) saturate(1.05); }
-      50%{ background-position: 10% 20%, -8% 30%, 6% -10%, -4% 8%; filter: blur(36px) contrast(1.08) saturate(1.15); }
-      100%{ background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%; filter: blur(34px) contrast(1.02) saturate(1.05); }
-    }
-
-    /* Canvas container for Three.js hearts (Layer 2) */
-    #three-bg {
-      position:fixed;
-      inset:0;
-      z-index:1;
-      pointer-events:none;
-    }
-
-    /* App container */
-    #app {
-      position:relative;
-      z-index:5;
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:40px;
-      box-sizing:border-box;
-    }
-
-    /* Top progress bar */
-    .progress-wrap {
-      position:fixed;
-      top:18px;
-      left:50%;
-      transform:translateX(-50%);
-      z-index:10;
-      width:min(780px,92vw);
-      height:10px;
-      border-radius:999px;
-      background:var(--progress-track);
-      backdrop-filter: blur(8px) saturate(120%);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.45);
-      display:flex;
-      align-items:center;
-      padding:2px;
-    }
-    .progress {
-      height:100%;
-      width:0%;
-      border-radius:999px;
-      background:linear-gradient(90deg,var(--accent-start),var(--accent-end));
-      box-shadow: 0 6px 24px rgba(255,80,120,0.12), inset 0 1px 0 rgba(255,255,255,0.05);
-      transition: width 0.7s cubic-bezier(.2,.9,.2,1);
-    }
-
-    /* Card common */
-    .card {
-      width:min(880px,94vw);
-      max-width:920px;
+    @keyframes auroraFlow {0%{background-position:0% 0%,0% 0%,0% 0%,0% 0%}50%{background-position:8% 12%,-6% 22%,4% -8%,-4% 6%}100%{background-position:0% 0%,0% 0%,0% 0%,0% 0%}}
+    /* three.js canvas */
+    #three-bg{position:fixed;inset:0;z-index:1;pointer-events:none}
+    /* stage centers steps */
+    #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:5;pointer-events:none}
+    /* steps root */
+    #steps-root{position:relative; width:min(920px,94vw); height:min(740px,86vh); pointer-events:auto}
+    /* cards (steps) absolutely centered inside steps-root */
+    .card.step{
+      position:absolute; inset:0; margin:auto; width:100%; max-width:920px; max-height:calc(86vh - 40px); display:flex; align-items:center; justify-content:flex-start; gap:24px;
+      box-sizing:border-box; padding:32px; border-radius:16px;
       background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border:1px solid var(--glass-border);
-      border-radius:18px;
-      box-shadow:var(--glass-shadow);
-      backdrop-filter: blur(var(--glass-blur)) saturate(130%);
-      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(130%);
-      padding:36px;
-      box-sizing:border-box;
-      color:var(--muted);
-      display:flex;
-      gap:28px;
-      align-items:center;
-      position:relative;
-      overflow:visible;
+      border:1px solid var(--glass-border); backdrop-filter: blur(12px) saturate(120%); -webkit-backdrop-filter: blur(12px) saturate(120%);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.55); overflow:visible; pointer-events:none;
+      opacity:0; transform: translateY(18px) scale(0.99);
     }
-
-    .card-inner {
-      flex:1 1 auto;
+    .card.step.active{opacity:1; transform:translateY(0) scale(1); pointer-events:auto;}
+    .card-inner{flex:1 1 auto}
+    .icon{width:110px;height:110px;border-radius:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;font-size:44px;flex-shrink:0}
+    h1,h2{font-family:"Playfair Display",serif;margin:0;color:transparent;background-clip:text;-webkit-background-clip:text;background-image:linear-gradient(90deg,#ffd6ea 10%, #fff 40%, #ffb3c9 70%);font-weight:700}
+    h1{font-size:clamp(28px,4.6vw,44px); line-height:1.02}
+    h2{font-size:clamp(20px,2.6vw,28px)}
+    p{font-family:Inter,system-ui; margin:12px 0 0 0; color:rgba(255,255,255,0.92); font-size:clamp(14px,1.6vw,16px); line-height:1.45}
+    .btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;background:linear-gradient(90deg,var(--accent-start),var(--accent-end));color:white;font-weight:700;border:none;cursor:pointer;box-shadow:0 10px 30px rgba(255,80,140,0.12); transform-origin:center; transition:transform .18s, box-shadow .18s; user-select:none}
+    .btn:hover{transform:translateY(-6px) scale(1.05); box-shadow:0 18px 48px rgba(255,80,140,0.22)}
+    .btn:active{transform:translateY(2px) scale(.99)}
+    .pulse{animation:pulse 1.6s ease-in-out infinite}
+    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+    /* Bento */
+    .bento{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:12px}
+    .bento .item{background:rgba(255,255,255,0.02);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);min-height:84px}
+    .bento .big{grid-column:span 2; min-height:120px}
+    .bento h3{font-family:"Playfair Display",serif;margin:0;color:transparent;background-clip:text;-webkit-background-clip:text;background-image:linear-gradient(90deg,#ffd6ea,#fff,#ffc1da)}
+    .bento p{margin:0}
+    /* polaroid */
+    .polaroid{width:320px; max-width:44vw; background:#fff; padding:12px;border-radius:10px; box-shadow:0 14px 38px rgba(0,0,0,0.55); transform-style:preserve-3d; transition:transform .28s}
+    .polaroid img{width:100%;display:block;border-radius:6px}
+    .caption{margin-top:10px;font-size:13px;color:#303030;text-align:center}
+    /* final wish */
+    .final-wish{font-family:"Playfair Display", serif; font-size:clamp(26px,4.4vw,40px); margin-top:14px; color:transparent; background-clip:text; -webkit-background-clip:text; background-image: linear-gradient(90deg,#fff9f2,#ffd6ea 60%, #ffb3c9 100%); text-align:center; opacity:0; transform:translateY(12px)}
+    /* progress */
+    .progress-wrap{position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:12; width:min(780px,92vw); height:10px; border-radius:999px; background:rgba(255,255,255,0.035); padding:2px; display:flex; align-items:center; box-shadow:0 6px 18px rgba(0,0,0,0.45); backdrop-filter:blur(6px)}
+    .progress{height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,var(--accent-start),var(--accent-end)); transition:width .7s cubic-bezier(.2,.9,.2,1)}
+    /* audio UI */
+    .audio-toggle{position:fixed; right:18px; bottom:18px; z-index:60; background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.06); padding:10px; border-radius:999px; box-shadow:0 10px 30px rgba(0,0,0,0.45); display:flex; gap:8px; align-items:center; backdrop-filter:blur(6px)}
+    .audio-toggle button{background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer}
+    .audio-toggle input[type="range"]{width:90px}
+    /* responsiveness */
+    @media (max-width:900px){
+      #steps-root{height:auto; padding:18px}
+      .card.step{flex-direction:column; align-items:flex-start; padding:20px; gap:16px; max-height:82vh; overflow:auto}
+      .icon{width:86px;height:86px;font-size:36px;border-radius:12px}
+      .polaroid{width:88%}
+      .bento{grid-template-columns:repeat(2,1fr)}
+      .bento .big{grid-column:span 2}
+      .progress-wrap{top:12px;height:9px}
     }
-
-    h1,h2{
-      font-family:"Playfair Display", serif;
-      margin:0;
-      color:transparent;
-      -webkit-background-clip:text;
-      background-clip:text;
-      background-image: linear-gradient(90deg, #ffd6ea 10%, #fff 40%, #ffb3c9 70%);
-      font-weight:700;
-      letter-spacing:-0.02em;
-      text-wrap: balance;
-    }
-    h1 { font-size:clamp(28px,4.6vw,44px); line-height:1.02; }
-    h2 { font-size:clamp(20px,2.6vw,28px); margin-bottom:6px; }
-
-    p {
-      font-family:"Inter", "Satoshi", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      font-size:clamp(14px,1.6vw,16px);
-      color:rgba(255,255,255,0.86);
-      margin:12px 0 0 0;
-      line-height:1.5;
-    }
-
-    /* Buttons (pill-shaped) */
-    .btn {
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      padding:12px 18px;
-      border-radius:999px;
-      cursor:pointer;
-      font-weight:700;
-      letter-spacing:0.01em;
-      font-family:"Inter", "Satoshi", sans-serif;
-      background:linear-gradient(90deg,var(--accent-start),var(--accent-end));
-      color:white;
-      box-shadow: 0 10px 30px rgba(255,90,140,0.12), 0 0 40px rgba(255,60,110,0.06) inset;
-      border:none;
-      transform-origin:center;
-      transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
-      user-select:none;
-    }
-    .btn:active { transform: translateY(2px) scale(0.99); }
-    .btn:hover {
-      transform: translateY(-6px) scale(1.05);
-      box-shadow: 0 18px 48px rgba(255,80,140,0.22), 0 0 80px rgba(255,40,110,0.08) inset;
-    }
-    .btn[disabled] { opacity:0.6; cursor:not-allowed; transform:none; box-shadow:none; }
-
-    /* Step container */
-    .step {
-      display:flex;
-      gap:28px;
-      align-items:flex-start;
-      opacity:0;
-      transform:translateY(18px) scale(0.99);
-      pointer-events:none;
-      will-change:transform,opacity;
-    }
-    .step.active {
-      opacity:1;
-      transform:translateY(0) scale(1);
-      pointer-events:auto;
-    }
-
-    /* Icon circle */
-    .icon {
-      width:110px;
-      height:110px;
-      border-radius:20px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border:1px solid rgba(255,255,255,0.04);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:44px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      flex-shrink:0;
-    }
-
-    /* Pulsing heart */
-    .pulse {
-      animation: pulse 1.6s ease-in-out infinite;
-      filter: drop-shadow(0 8px 30px rgba(255,80,140,0.18));
-    }
-    @keyframes pulse {
-      0%{ transform:scale(1); opacity:0.96; filter: drop-shadow(0 6px 18px rgba(255,80,140,0.12)); }
-      50%{ transform:scale(1.08); opacity:1; filter: drop-shadow(0 18px 44px rgba(255,80,140,0.22)); }
-      100%{ transform:scale(1); opacity:0.96; filter: drop-shadow(0 6px 18px rgba(255,80,140,0.12)); }
-    }
-
-    /* Bento grid for Step 3 */
-    .bento {
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-auto-rows: minmax(90px, auto);
-      gap:14px;
-      margin-top:10px;
-    }
-    .bento .item {
-      background: rgba(255,255,255,0.02);
-      border-radius:12px;
-      padding:14px;
-      border:1px solid rgba(255,255,255,0.03);
-      backdrop-filter: blur(6px);
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      align-items:flex-start;
-      justify-content:center;
-      min-height:84px;
-    }
-    .bento .big {
-      grid-column: span 2;
-      min-height:120px;
-    }
-    .bento h3 { margin:0; font-family:"Playfair Display", serif; font-size:18px; color:transparent; background-clip:text; -webkit-background-clip:text; background-image: linear-gradient(90deg,#ffd6ea,#fff,#ffc1da); }
-    .bento p { margin:0; font-size:14px; color:rgba(255,255,255,0.88); }
-
-    /* Polaroid */
-    .polaroid {
-      width:320px;
-      max-width:42vw;
-      background:linear-gradient(180deg,#ffffff 0%, #f7f7f7 100%);
-      padding:14px 14px 20px 14px;
-      border-radius:12px;
-      box-shadow: 0 12px 34px rgba(2,2,2,0.6);
-      transform-style:preserve-3d;
-      transition: transform 280ms ease;
-    }
-    .polaroid img {
-      width:100%;
-      height:auto;
-      display:block;
-      border-radius:6px;
-      box-shadow: 0 10px 28px rgba(0,0,0,0.45);
-    }
-    .caption {
-      margin-top:10px;
-      font-size:13px;
-      color:#363636;
-      text-align:center;
-    }
-
-    /* Finale message */
-    .final-wish {
-      font-family:"Playfair Display", serif;
-      font-size:clamp(26px,4.4vw,40px);
-      margin:18px 0 0 0;
-      color:transparent;
-      background-clip:text;
-      -webkit-background-clip:text;
-      background-image: linear-gradient(90deg,#fff9f2,#ffd6ea 60%, #ffb3c9 100%);
-      text-align:center;
-      opacity:0;
-      transform:translateY(12px);
-    }
-
-    /* Audio control */
-    .audio-toggle {
-      position:fixed;
-      right:18px;
-      bottom:18px;
-      z-index:60;
-      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-      border:1px solid rgba(255,255,255,0.06);
-      padding:10px;
-      border-radius:999px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-      display:flex;
-      gap:8px;
-      align-items:center;
-      backdrop-filter: blur(8px);
-    }
-    .audio-toggle button { background:transparent; border:none; color:var(--muted); font-size:18px; cursor:pointer; padding:6px; }
-    .audio-toggle input[type="range"]{ width:90px; }
-
-    /* Mobile responsiveness */
-    @media (max-width:800px){
-      .card { padding:20px; flex-direction:column; gap:18px; border-radius:14px; }
-      .icon { width:86px; height:86px; font-size:36px; border-radius:14px; }
-      .polaroid { width:88%; max-width:320px; }
-      .bento { grid-template-columns: repeat(2, 1fr); }
-      .bento .big { grid-column: span 2; }
-      .progress-wrap { width:min(92vw,720px); top:12px; height:9px; }
+    @media (max-width:480px){
+      body,html{overflow:hidden}
     }
   </style>
 </head>
 <body>
-  <!-- Aurora background (Layer 1) -->
+  <!-- Background layers -->
   <div class="aurora" aria-hidden="true"></div>
-
-  <!-- Three.js canvas (Layer 2) -->
   <div id="three-bg" aria-hidden="true"></div>
 
-  <!-- Top progress -->
+  <!-- Progress -->
   <div class="progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-    <div class="progress" id="progressBar"></div>
+    <div id="progressBar" class="progress"></div>
   </div>
 
-  <div id="app">
-    <!-- Steps container -->
-    <div id="steps-root" style="width:100%; max-width:960px;">
-
+  <!-- Stage -->
+  <div id="stage">
+    <div id="steps-root" aria-live="polite">
       <!-- Step 1 -->
-      <div class="card step" data-step="1" id="step-1">
-        <div class="icon" aria-hidden="true">
-          <div class="pulse" style="font-size:46px;">❤️</div>
-        </div>
+      <div class="card step" id="step-1" data-step="1">
+        <div class="icon" aria-hidden="true"><div class="pulse" style="font-size:46px">❤️</div></div>
         <div class="card-inner">
           <h1>Hey Beautiful,</h1>
           <p>I built a little world for you, just to bring a smile to your face on your special day.</p>
-          <div style="margin-top:18px;">
+          <div style="margin-top:18px">
             <button class="btn" data-next>Let's Begin</button>
           </div>
         </div>
       </div>
 
       <!-- Step 2 -->
-      <div class="card step" data-step="2" id="step-2" aria-hidden="true" style="margin-top:18px;">
-        <div class="icon">
-          <div style="font-size:42px;">🎉</div>
-        </div>
+      <div class="card step" id="step-2" data-step="2">
+        <div class="icon" aria-hidden="true"><div style="font-size:42px">🎉</div></div>
         <div class="card-inner">
           <h2>Happy Birthday!</h2>
           <p>Another year of you making the world brighter. Your existence is a gift, and I'm so lucky to witness it.</p>
-          <div style="margin-top:18px;">
+          <div style="margin-top:18px">
             <button class="btn" data-next>There's more...</button>
           </div>
         </div>
       </div>
 
       <!-- Step 3 -->
-      <div class="card step" data-step="3" id="step-3" aria-hidden="true" style="margin-top:18px;">
+      <div class="card step" id="step-3" data-step="3">
         <div style="width:160px; flex-shrink:0;">
-          <div class="icon" style="height:160px;width:160px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:32px;">
-            💖
-          </div>
+          <div class="icon" style="height:160px;width:160px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:32px">💖</div>
         </div>
         <div class="card-inner">
           <h2>A Few Things I Adore About You</h2>
-          <div class="bento" style="margin-top:12px;">
-            <div class="item big">
-              <h3>✨ Your Unmatched Kindness</h3>
-              <p>The genuine warmth you show to everyone is something truly rare and beautiful.</p>
-            </div>
-            <div class="item">
-              <h3>😊 That Smile</h3>
-              <p>It's a work of art.</p>
-            </div>
-            <div class="item big">
-              <h3>🌟 Your Radiant Spirit</h3>
-              <p>Your passion for life is infectious. Being around you makes everything feel more exciting and possible.</p>
-            </div>
+          <div class="bento">
+            <div class="item big"><h3>✨ Your Unmatched Kindness</h3><p>The genuine warmth you show to everyone is something truly rare and beautiful.</p></div>
+            <div class="item"><h3>😊 That Smile</h3><p>It's a work of art.</p></div>
+            <div class="item big"><h3>🌟 Your Radiant Spirit</h3><p>Your passion for life is infectious. Being around you makes everything feel more exciting and possible.</p></div>
           </div>
-          <div style="margin-top:16px;">
-            <button class="btn" data-next>Remember this?</button>
-          </div>
+          <div style="margin-top:16px"><button class="btn" data-next>Remember this?</button></div>
         </div>
       </div>
 
       <!-- Step 4 -->
-      <div class="card step" data-step="4" id="step-4" aria-hidden="true" style="margin-top:18px;">
-        <div style="width:340px; display:flex;align-items:center;justify-content:center;">
-          <div class="polaroid" id="polaroid" style="cursor:grab;">
+      <div class="card step" id="step-4" data-step="4">
+        <div style="width:340px;display:flex;align-items:center;justify-content:center">
+          <div class="polaroid" id="polaroid" style="cursor:grab">
             <img src="https://i.ibb.co/6Z6XgCg/crush.webp" alt="Our memory" />
             <div class="caption">Our favorite memory.</div>
           </div>
@@ -409,369 +167,127 @@
         <div class="card-inner">
           <h2>That One Time...</h2>
           <p>Every moment with you feels like a scene from a movie I'd watch on repeat.</p>
-          <div style="margin-top:18px;">
-            <button class="btn" data-next>One last thing...</button>
-          </div>
+          <div style="margin-top:18px"><button class="btn" data-next>One last thing...</button></div>
         </div>
       </div>
 
       <!-- Step 5 -->
-      <div class="card step" data-step="5" id="step-5" aria-hidden="true" style="margin-top:18px;">
-        <div class="icon" style="height:110px;width:110px;border-radius:20px;">
-          <div style="font-size:42px;">🎂</div>
-        </div>
-        <div class="card-inner" style="text-align:left;">
+      <div class="card step" id="step-5" data-step="5">
+        <div class="icon" style="height:110px;width:110px;border-radius:16px"><div style="font-size:42px">🎂</div></div>
+        <div class="card-inner">
           <h2>My Wish For You</h2>
           <p>May the next year bring you all the love, success, and pure happiness you so rightfully deserve. May your dreams soar higher than ever.</p>
-
-          <div style="margin-top:18px; display:flex; gap:14px; align-items:center;">
+          <div style="margin-top:18px; display:flex; gap:14px; align-items:center">
             <button class="btn" id="celebrateBtn">Celebrate!</button>
             <div style="flex:1"></div>
           </div>
-
           <div class="final-wish" id="finalWish">Happy Birthday, my crush! ❤️</div>
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- Confetti canvas -->
-  <canvas id="confetti-canvas" style="position:fixed;pointer-events:none;inset:0;z-index:50;"></canvas>
+  <!-- confetti canvas -->
+  <canvas id="confetti-canvas" style="position:fixed;pointer-events:none;inset:0;z-index:50"></canvas>
 
-  <!-- Audio control UI -->
+  <!-- audio control -->
   <div class="audio-toggle" id="audioToggle" aria-hidden="false">
-    <!-- Start muted icon (user hasn't started audio yet) -->
     <button id="audioBtn" title="Toggle music">🔈</button>
     <input id="volRange" type="range" min="0" max="1" step="0.01" value="0.65" />
   </div>
 
   <script>
     /***********************
-     * Audio Manager (WebAudio) - Robust & safe guards
+     * Utilities & State
      ***********************/
-    const AudioManager = (function(){
-      let ctx = null;
-      let master = null;
-      let musicGain = null;
-      let isInitialized = false;
-      let isPlaying = false;
-      let ambientNodes = [];
-      let volume = 0.65;
-      let pulseInterval = null;
-
-      function safeTry(fn){
-        try{ fn(); } catch(e){ console.warn('AudioManager error', e); }
-      }
-
-      function init(){
-        if(isInitialized) return;
-        try{
-          ctx = new (window.AudioContext || window.webkitAudioContext)();
-        } catch(e){
-          console.warn('Web Audio not supported', e);
-          return;
-        }
-        master = ctx.createGain();
-        master.gain.value = volume;
-        master.connect(ctx.destination);
-
-        musicGain = ctx.createGain();
-        musicGain.gain.value = 0.0;
-        musicGain.connect(master);
-
-        // simple warm pad
-        const oscA = ctx.createOscillator();
-        const oscB = ctx.createOscillator();
-        oscA.type = 'sine'; oscB.type = 'sine';
-        oscA.frequency.value = 110; oscB.frequency.value = 110 * 1.012;
-        const oscAGain = ctx.createGain(); oscAGain.gain.value = 0.18;
-        const oscBGain = ctx.createGain(); oscBGain.gain.value = 0.14;
-
-        const lfo = ctx.createOscillator(); lfo.type='sine'; lfo.frequency.value = 0.06;
-        const lfoGain = ctx.createGain(); lfoGain.gain.value = 0.04;
-
-        const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 1200;
-
-        const detuneOsc = ctx.createOscillator(); detuneOsc.type='sine'; detuneOsc.frequency.value = 0.08;
-        const detuneGain = ctx.createGain(); detuneGain.gain.value = 4;
-
-        oscA.connect(oscAGain); oscB.connect(oscBGain);
-        oscAGain.connect(lp); oscBGain.connect(lp);
-        lp.connect(musicGain);
-        lfo.connect(lfoGain); lfoGain.connect(oscAGain.gain); lfoGain.connect(oscBGain.gain);
-        detuneOsc.connect(detuneGain); detuneGain.connect(oscA.detune); detuneGain.connect(oscB.detune);
-
-        // noise background
-        const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 3, ctx.sampleRate);
-        const data = noiseBuffer.getChannelData(0);
-        for(let i=0;i<data.length;i++){ data[i] = (Math.random()*2-1) * 0.25; }
-        const nb = ctx.createBufferSource();
-        nb.buffer = noiseBuffer;
-        nb.loop = true;
-        const noiseFilter = ctx.createBiquadFilter(); noiseFilter.type = 'lowpass'; noiseFilter.frequency.value = 900;
-        const noiseGain = ctx.createGain(); noiseGain.gain.value = 0.04;
-        nb.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(musicGain);
-
-        // percussive pulse
-        const pulseGain = ctx.createGain(); pulseGain.gain.value = 0;
-        const pulseOsc = ctx.createOscillator(); pulseOsc.type = 'triangle'; pulseOsc.frequency.value = 220;
-        pulseOsc.connect(pulseGain); pulseGain.connect(musicGain);
-
-        safeTry(()=>{ oscA.start(); oscB.start(); lfo.start(); detuneOsc.start(); nb.start(); pulseOsc.start(); });
-        ambientNodes.push({oscA, oscB, lfo, detuneOsc, nb, noiseGain, pulseGain, pulseOsc, lp});
-
-        // apply initial slider volume if present
-        const vSlider = document.getElementById('volRange');
-        if(vSlider){ volume = parseFloat(vSlider.value || 0.65); safeTry(()=>{ master.gain.value = volume; }); }
-
-        isInitialized = true;
-      }
-
-      function resumeIfNeeded(){
-        if(!ctx) return Promise.resolve();
-        if (ctx.state === 'suspended') {
-          return ctx.resume().catch(e=>{console.warn('resume failed', e);});
-        }
-        return Promise.resolve();
-      }
-
-      function playBackground(){
-        if(!isInitialized) init();
-        if(!ctx) return;
-        return resumeIfNeeded().then(()=>{
-          isPlaying = true;
-          try{
-            gsap.to(musicGain.gain, {value:0.55, duration:2.2, ease:'sine.inOut'});
-          }catch(e){}
-          schedulePulse();
-        }).catch(()=>{});
-      }
-
-      function schedulePulse(){
-        if(pulseInterval) clearInterval(pulseInterval);
-        pulseInterval = setInterval(()=> {
-          if(!isPlaying) return;
-          const n = ambientNodes[0];
-          if(!n) return;
-          const g = n.pulseGain.gain;
-          try{
-            g.cancelScheduledValues(ctx.currentTime);
-            g.setValueAtTime(0, ctx.currentTime);
-            g.linearRampToValueAtTime(0.15, ctx.currentTime + 0.03);
-            g.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.1);
-          }catch(e){}
-        }, 3600 + Math.random()*1800);
-      }
-
-      function stopBackground(){
-        if(!isInitialized) return;
-        try{
-          gsap.to(musicGain.gain, {value:0.0, duration:1.2, ease:'sine.inOut', onComplete:()=>{ isPlaying=false; if(pulseInterval) clearInterval(pulseInterval); }});
-        }catch(e){ isPlaying=false; if(pulseInterval) clearInterval(pulseInterval); }
-      }
-
-      // Click sound
-      function playClick(){
-        if(!isInitialized) init();
-        if(!ctx) return;
-        return resumeIfNeeded().then(()=>{
-          const now = ctx.currentTime;
-          const b = ctx.createBufferSource();
-          const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.06, ctx.sampleRate);
-          const data = buffer.getChannelData(0);
-          for(let i=0;i<data.length;i++){ data[i] = (Math.random()*2-1) * Math.exp(-i/(data.length*0.4)); }
-          b.buffer = buffer;
-          const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1700 + Math.random()*300;
-          const g = ctx.createGain(); g.gain.value = 0.4;
-          b.connect(bp); bp.connect(g); g.connect(master);
-          b.start(now);
-          g.gain.setValueAtTime(0.4, now);
-          g.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
-          setTimeout(()=>{ try{ b.disconnect(); bp.disconnect(); g.disconnect(); }catch(e){} }, 900);
-        }).catch(()=>{});
-      }
-
-      // Chime
-      function playChime(){
-        if(!isInitialized) init();
-        if(!ctx) return;
-        return resumeIfNeeded().then(()=>{
-          const now = ctx.currentTime;
-          const freqs = [880, 1320, 1760];
-          freqs.forEach((f, i)=>{
-            const o = ctx.createOscillator();
-            o.type = 'sine';
-            o.frequency.value = f;
-            const g = ctx.createGain(); g.gain.value = 0;
-            const filter = ctx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value = 7200 - i*800;
-            o.connect(filter); filter.connect(g); g.connect(master);
-            o.start(now + i*0.02);
-            g.gain.setValueAtTime(0.0001, now);
-            g.gain.exponentialRampToValueAtTime(0.12/(i+1), now + 0.02 + i*0.01);
-            g.gain.exponentialRampToValueAtTime(0.0001, now + 1.6 + i*0.05);
-            o.stop(now + 2.0 + i*0.05);
-            setTimeout(()=>{ try{ o.disconnect(); g.disconnect(); filter.disconnect(); }catch(e){} }, 2600);
-          });
-        }).catch(()=>{});
-      }
-
-      function playCelebration(){
-        if(!isInitialized) init();
-        if(!ctx) return;
-        return resumeIfNeeded().then(()=>{
-          const now = ctx.currentTime;
-          const base = [1320, 1100, 880, 660];
-          base.forEach((f, idx)=>{
-            const count = 3;
-            for(let j=0;j<count;j++){
-              const o = ctx.createOscillator();
-              o.type = 'sine';
-              const freq = f * (1 + (Math.random()-0.5)*0.02);
-              o.frequency.value = freq;
-              const g = ctx.createGain(); g.gain.value = 0;
-              const filter = ctx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value = 7200;
-              o.connect(filter); filter.connect(g); g.connect(master);
-              const start = now + idx*0.12 + j*0.03;
-              o.start(start);
-              g.gain.setValueAtTime(0.0001, start);
-              g.gain.exponentialRampToValueAtTime(0.18/(j+1), start + 0.02);
-              g.gain.exponentialRampToValueAtTime(0.0001, start + 1.2 + Math.random()*0.8);
-              o.stop(start + 2.4 + Math.random()*0.7);
-            }
-          });
-          setTimeout(()=> playChime(), 160);
-          setTimeout(()=> playChime(), 420);
-        }).catch(()=>{});
-      }
-
-      function setVolume(v){
-        volume = v;
-        if(master) safeTry(()=>{ master.gain.setValueAtTime(v, ctx.currentTime); });
-      }
-
-      function toggle(){
-        if(isPlaying){ stopBackground(); return false; }
-        else { playBackground(); return true; }
-      }
-
-      return {
-        init, resumeIfNeeded, playBackground, stopBackground, playClick, playChime, playCelebration, setVolume, toggle,
-        get state(){ return {isInitialized, isPlaying, volume}; }
-      };
-    })();
-
-    /***********************
-     * UI Steps
-     ***********************/
-    const steps = Array.from(document.querySelectorAll('.step'));
+    const steps = Array.from(document.querySelectorAll('.card.step'));
     let currentStep = 0;
     const totalSteps = steps.length;
     const progressBar = document.getElementById('progressBar');
 
+    // make sure only one step is active initially
+    steps.forEach(s => s.classList.remove('active'));
+    document.getElementById('step-1').classList.add('active');
+
+    function updateProgress(){
+      const pct = Math.round((currentStep / (totalSteps - 1)) * 100);
+      progressBar.style.width = pct + '%';
+      document.querySelector('.progress-wrap').setAttribute('aria-valuenow', pct);
+    }
+
+    /***********************
+     * Show step (centered, no scroll)
+     ***********************/
     function showStep(index){
+      if(index < 0) index = 0;
+      if(index >= totalSteps) index = totalSteps - 1;
+
       const prev = steps[currentStep];
       const next = steps[index];
       if(prev && prev !== next){
-        gsap.to(prev, {duration:0.45, opacity:0, scale:0.98, y:10, ease:'power3.inOut', pointerEvents:'none'});
-        prev.classList.remove('active');
+        gsap.to(prev, {duration:0.45, opacity:0, scale:0.98, y:10, ease:'power3.inOut', pointerEvents:'none', onComplete:()=> { prev.classList.remove('active'); }});
       }
+      // ensure snap to top as fail-safe if layout shifted
+      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e){ /* ignore */ }
+
+      // animate in next
       next.classList.add('active');
-      gsap.fromTo(next, {opacity:0, y:18, scale:0.99}, {duration:0.6, opacity:1, y:0, scale:1, ease:'power3.out', stagger:0.04, onStart:()=>{
-        gsap.from(next.querySelectorAll('h1,h2,p,.btn,.bento .item,.polaroid'), {duration:0.6, y:8, opacity:0, stagger:0.06, ease:'power3.out'});
+      gsap.fromTo(next, {opacity:0, y:18, scale:0.99}, {duration:0.6, opacity:1, y:0, scale:1, ease:'power3.out', onStart:()=>{
+        // stagger inner elements
+        const innerEls = next.querySelectorAll('h1,h2,p,.btn,.bento .item,.polaroid');
+        if(innerEls.length) gsap.from(innerEls, {duration:0.6, y:8, opacity:0, stagger:0.06, ease:'power3.out'});
       }});
       currentStep = index;
       updateProgress();
     }
 
-    function updateProgress(){
-      const pct = Math.round(((currentStep) / (totalSteps - 1)) * 100);
-      progressBar.style.width = pct + '%';
-      document.querySelector('.progress-wrap').setAttribute('aria-valuenow', pct);
-    }
-
-    // Button wiring with audio integration
-    let audioStartedByCTA = false;
-    function ensureAudioStartedByUser(){
-      if(audioStartedByCTA) return;
-      audioStartedByCTA = true;
-      AudioManager.init();
-      AudioManager.setVolume(parseFloat(document.getElementById('volRange').value || 0.65));
-      AudioManager.playBackground();
-      document.getElementById('audioBtn').textContent = '🔊';
-    }
-
+    // wire nav buttons
     document.querySelectorAll('[data-next]').forEach(btn=>{
-      btn.addEventListener('click', (e)=>{
+      btn.addEventListener('click', e=>{
         e.preventDefault();
-        ensureAudioStartedByUser();
+        startAudioIfNeeded();
         AudioManager.playClick();
         setTimeout(()=> AudioManager.playChime(), 120);
-        const target = Math.min(currentStep+1, totalSteps-1);
-        showStep(target);
+        showStep(Math.min(currentStep + 1, totalSteps - 1));
       });
     });
 
-    // Also ensure all .btns play click and init audio on first gesture
-    document.querySelectorAll('.btn').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        ensureAudioStartedByUser();
-        AudioManager.playClick();
-      });
+    // allow arrow nav
+    window.addEventListener('keydown', e=>{
+      if(e.key === 'ArrowRight') showStep(Math.min(currentStep + 1, totalSteps - 1));
+      if(e.key === 'ArrowLeft') showStep(Math.max(currentStep - 1, 0));
     });
 
-    // Start at step 0
-    showStep(0);
+    updateProgress();
 
     /***********************
-     * Polaroid tilt
+     * Polaroid tilt/parallax (touch-friendly)
      ***********************/
-    (function polaroidTilt(){
+    (function(){
       const polaroid = document.getElementById('polaroid');
       if(!polaroid) return;
       let rect = polaroid.getBoundingClientRect();
       function onMove(e){
-        const x = (e.clientX || (e.touches && e.touches[0].clientX)) - (rect.left + rect.width/2);
-        const y = (e.clientY || (e.touches && e.touches[0].clientY)) - (rect.top + rect.height/2);
+        const cx = e.clientX || (e.touches && e.touches[0].clientX);
+        const cy = e.clientY || (e.touches && e.touches[0].clientY);
+        if(!cx || !cy) return;
+        const x = cx - (rect.left + rect.width/2);
+        const y = cy - (rect.top + rect.height/2);
         const rx = (-y / rect.height) * 8;
         const ry = (x / rect.width) * 8;
         gsap.to(polaroid, {duration:0.35, rotationX: rx, rotationY: ry, ease:'power3.out', transformOrigin:'center center'});
       }
-      function onEnter(){
-        rect = polaroid.getBoundingClientRect();
-        document.addEventListener('mousemove', onMove);
-        document.addEventListener('touchmove', onMove, {passive:true});
-      }
-      function onLeave(){
-        document.removeEventListener('mousemove', onMove);
-        gsap.to(polaroid, {duration:0.6, rotationX:0, rotationY:0, ease:'elastic.out(1,0.6)'});
-      }
-      polaroid.addEventListener('mouseenter', onEnter);
-      polaroid.addEventListener('mouseleave', onLeave);
-      polaroid.addEventListener('touchstart', onEnter, {passive:true});
-      polaroid.addEventListener('touchend', onLeave);
+      function enter(){ rect = polaroid.getBoundingClientRect(); document.addEventListener('mousemove', onMove); document.addEventListener('touchmove', onMove, {passive:true}); }
+      function leave(){ document.removeEventListener('mousemove', onMove); gsap.to(polaroid, {duration:0.6, rotationX:0, rotationY:0, ease:'elastic.out(1,0.6)'}); }
+      polaroid.addEventListener('mouseenter', enter);
+      polaroid.addEventListener('mouseleave', leave);
+      polaroid.addEventListener('touchstart', enter, {passive:true});
+      polaroid.addEventListener('touchend', leave);
     })();
 
     /***********************
-     * Finale & confetti
+     * CONFETTI (finale)
      ***********************/
-    const celebrateBtn = document.getElementById('celebrateBtn');
-    const finalWish = document.getElementById('finalWish');
-
-    celebrateBtn.addEventListener('click', async ()=>{
-      ensureAudioStartedByUser();
-      AudioManager.playClick();
-      celebrateBtn.disabled = true;
-      gsap.to(celebrateBtn, {duration:0.4, opacity:0, scale:0.94, pointerEvents:'none', ease:'power2.inOut'});
-
-      gsap.to(finalWish, {duration:0.9, opacity:1, y:0, ease:'power3.out', delay:0.35});
-
-      AudioManager.playCelebration();
-      launchConfettiSequence();
-      heartsSwirlOut();
-      gsap.to('.aurora', {duration:1.2, filter:'blur(28px) contrast(1.09) saturate(1.18)', ease:'power1.inOut', yoyo:true, repeat:1});
-    });
-
     function launchConfettiSequence(){
       const myConfetti = confetti.create(document.getElementById('confetti-canvas'), { resize: true, useWorker: true });
 
@@ -794,7 +310,7 @@
     }
 
     /***********************
-     * Three.js Hearts
+     * THREE.JS Hearts (optimized mobile-friendly)
      ***********************/
     const threeContainer = document.getElementById('three-bg');
     const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
@@ -805,18 +321,17 @@
     threeContainer.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 2000);
-    camera.position.set(0, 0, 60);
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth/window.innerHeight, 0.1, 2000);
+    camera.position.set(0,0,60);
 
     const ambient = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambient);
-    const dir = new THREE.DirectionalLight(0xffffff, 0.6);
-    dir.position.set(50, 50, 100);
-    scene.add(dir);
+    const dir = new THREE.DirectionalLight(0xffffff, 0.6); dir.position.set(50,50,100); scene.add(dir);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x111114, 0.09); scene.add(hemi);
 
     function createHeartShape(scale=1){
-      const x = 0, y = 0;
       const heart = new THREE.Shape();
+      const x=0,y=0;
       heart.moveTo(x, y + 8 * scale);
       heart.bezierCurveTo(x + 8 * scale, y + 20 * scale, x + 34 * scale, y + 20 * scale, x + 34 * scale, y + 8 * scale);
       heart.bezierCurveTo(x + 34 * scale, y - 6 * scale, x + 16 * scale, y - 6 * scale, x + 12 * scale, y + 6 * scale);
@@ -825,57 +340,41 @@
       heart.bezierCurveTo(x - 34 * scale, y + 20 * scale, x - 8 * scale, y + 20 * scale, x, y + 8 * scale);
       return heart;
     }
-
     function createHeartMaterial(hex){
-      return new THREE.MeshStandardMaterial({
-        color: hex,
-        metalness: 0.08,
-        roughness: 0.28,
-        emissive: new THREE.Color(hex).multiplyScalar(0.05),
-        side: THREE.DoubleSide,
-      });
+      return new THREE.MeshStandardMaterial({ color:hex, metalness:0.08, roughness:0.28, emissive: new THREE.Color(hex).multiplyScalar(0.05), side:THREE.DoubleSide });
     }
 
-    const heartsGroup = new THREE.Group();
-    scene.add(heartsGroup);
-
+    const heartsGroup = new THREE.Group(); scene.add(heartsGroup);
     const heartMeshes = [];
-    const numHearts = 22;
+    // adjust heart count for mobile
+    const isMobile = window.matchMedia("(max-width:900px)").matches;
+    const numHearts = isMobile ? 12 : 22;
     const colors = ['#ff7aa2','#ff4f7a','#ff9cb1','#ff2b6f','#ff6b98'];
 
     for(let i=0;i<numHearts;i++){
-      const scale = (Math.random()*0.7)+0.6;
       const shape = createHeartShape(0.8);
       const extrudeSettings = { depth: 2 + Math.random()*3, bevelEnabled:true, bevelThickness:0.8, bevelSize:0.8, bevelSegments:4 };
       const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-      geom.computeBoundingBox();
-      geom.center();
+      geom.computeBoundingBox(); geom.center();
       const mat = createHeartMaterial(colors[Math.floor(Math.random()*colors.length)]);
       const mesh = new THREE.Mesh(geom, mat);
       mesh.position.x = (Math.random()-0.5) * 120;
       mesh.position.y = (Math.random()-0.5) * 80;
       mesh.position.z = -20 + Math.random() * 80;
+      const scale = (Math.random()*0.7)+0.6;
       mesh.scale.setScalar(scale * (0.6 + Math.random()*0.8));
       mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI * 0.2);
       mesh.userData = { baseY: mesh.position.y, speed: 0.2 + Math.random()*0.7, sway: 0.2 + Math.random()*0.9, rotSpeed: (Math.random()-0.5)*0.002 };
-      heartsGroup.add(mesh);
-      heartMeshes.push(mesh);
+      heartsGroup.add(mesh); heartMeshes.push(mesh);
     }
-
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x111114, 0.09);
-    scene.add(hemi);
 
     window.addEventListener('resize', onResize);
-    function onResize(){
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-    }
+    function onResize(){ renderer.setSize(window.innerWidth, window.innerHeight); camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); }
 
-    let last = 0; let swirlOut = false; let swirlStart = null;
+    let swirlOut=false, swirlStart=null;
     function animate(t){
       const time = t * 0.001;
-      heartMeshes.forEach((m, i)=>{
+      heartMeshes.forEach((m,i)=>{
         const ud = m.userData;
         const sway = Math.sin(time * ud.speed + i) * ud.sway * 4.5;
         m.position.x += Math.sin(time * ud.speed * 0.8 + i) * 0.02;
@@ -897,50 +396,237 @@
         });
         ambient.intensity = Math.max(0.2, 0.6 * (1 - progress));
       }
-
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
     }
     requestAnimationFrame(animate);
-    function heartsSwirlOut(){ swirlOut = true; gsap.to(camera.position, { duration: 2.2, z: 95, ease: 'power2.out' }); }
+    function heartsSwirlOut(){ swirlOut = true; gsap.to(camera.position, {duration:2.2, z:95, ease:'power2.out'}); }
 
     /***********************
-     * Entrance animations & nav
+     * AUDIO: WebAudio-based lo-fi pad + clicks/chimes
      ***********************/
-    gsap.from('body', { duration:1.2, opacity:0, ease:'power2.out' });
-    gsap.to('#steps-root', { duration: 8, y: -6, repeat:-1, yoyo:true, ease:'sine.inOut' });
+    const AudioManager = (function(){
+      let ctx = null, master=null, musicGain=null, isInit=false, isPlaying=false, ambientNodes=[], pulseInterval=null;
+      function safeTry(fn){ try{ fn(); } catch(e){ console.warn('Audio err', e); } }
+      function init(){
+        if(isInit) return;
+        try{ ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ console.warn('WebAudio not supported'); return; }
+        master = ctx.createGain(); master.gain.value = parseFloat(document.getElementById('volRange').value || 0.65); master.connect(ctx.destination);
+        musicGain = ctx.createGain(); musicGain.gain.value = 0; musicGain.connect(master);
+        // two detuned oscillators as warm pad
+        const oscA = ctx.createOscillator(); const oscB = ctx.createOscillator();
+        oscA.type='sine'; oscB.type='sine'; oscA.frequency.value = 110; oscB.frequency.value = 110 * 1.012;
+        const oscAGain = ctx.createGain(); oscAGain.gain.value=0.16; const oscBGain = ctx.createGain(); oscBGain.gain.value=0.12;
+        const lfo = ctx.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.055; const lfoGain = ctx.createGain(); lfoGain.gain.value=0.04;
+        const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 1200;
+        const detuneOsc = ctx.createOscillator(); detuneOsc.type='sine'; detuneOsc.frequency.value=0.08; const detuneGain = ctx.createGain(); detuneGain.gain.value=4;
+        oscA.connect(oscAGain); oscB.connect(oscBGain); oscAGain.connect(lp); oscBGain.connect(lp); lp.connect(musicGain);
+        lfo.connect(lfoGain); lfoGain.connect(oscAGain.gain); lfoGain.connect(oscBGain.gain);
+        detuneOsc.connect(detuneGain); detuneGain.connect(oscA.detune); detuneGain.connect(oscB.detune);
+        // noise texture
+        const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 3, ctx.sampleRate);
+        const data = noiseBuffer.getChannelData(0); for(let i=0;i<data.length;i++) data[i] = (Math.random()*2-1) * 0.25;
+        const nb = ctx.createBufferSource(); nb.buffer = noiseBuffer; nb.loop = true;
+        const noiseFilter = ctx.createBiquadFilter(); noiseFilter.type='lowpass'; noiseFilter.frequency.value = 900;
+        const noiseGain = ctx.createGain(); noiseGain.gain.value = 0.04;
+        nb.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(musicGain);
+        // percussive pulse oscillator
+        const pulseGain = ctx.createGain(); pulseGain.gain.value = 0;
+        const pulseOsc = ctx.createOscillator(); pulseOsc.type = 'triangle'; pulseOsc.frequency.value = 220;
+        pulseOsc.connect(pulseGain); pulseGain.connect(musicGain);
 
-    window.addEventListener('keydown', (e)=>{
-      if(e.key === 'ArrowRight') { const next = Math.min(currentStep+1, totalSteps-1); showStep(next); }
-      else if(e.key === 'ArrowLeft') { const prev = Math.max(currentStep-1, 0); showStep(prev); }
+        safeTry(()=>{ oscA.start(); oscB.start(); lfo.start(); detuneOsc.start(); nb.start(); pulseOsc.start(); });
+
+        ambientNodes.push({oscA, oscB, lfo, detuneOsc, nb, noiseGain, pulseGain, pulseOsc, lp});
+        isInit = true;
+      }
+      function resumeIfNeeded(){ if(!ctx) return Promise.resolve(); if(ctx.state === 'suspended') return ctx.resume().catch(()=>{}); return Promise.resolve(); }
+      function playBackground(){
+        if(!isInit) init();
+        if(!ctx) return;
+        return resumeIfNeeded().then(()=> {
+          isPlaying = true;
+          safeTry(()=> gsap.to(musicGain.gain, {value:0.55, duration:2.2, ease:'sine.inOut'}));
+          schedulePulse();
+        }).catch(()=>{});
+      }
+      function schedulePulse(){
+        if(pulseInterval) clearInterval(pulseInterval);
+        pulseInterval = setInterval(()=> {
+          if(!isPlaying) return;
+          const n = ambientNodes[0]; if(!n) return;
+          const g = n.pulseGain.gain;
+          try{ g.cancelScheduledValues(ctx.currentTime); g.setValueAtTime(0, ctx.currentTime); g.linearRampToValueAtTime(0.15, ctx.currentTime+0.03); g.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.1); }catch(e){}
+        }, 3600 + Math.random()*1800);
+      }
+      function stopBackground(){
+        if(!isInit) return;
+        try{ gsap.to(musicGain.gain, {value:0, duration:1.2, ease:'sine.inOut', onComplete:()=>{ isPlaying=false; if(pulseInterval) clearInterval(pulseInterval); } }); }catch(e){ isPlaying=false; if(pulseInterval) clearInterval(pulseInterval); }
+      }
+      function playClick(){
+        if(!isInit) init();
+        if(!ctx) return;
+        return resumeIfNeeded().then(()=> {
+          const now = ctx.currentTime;
+          const b = ctx.createBufferSource();
+          const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.06, ctx.sampleRate);
+          const d = buffer.getChannelData(0);
+          for(let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * Math.exp(-i/(d.length*0.4));
+          b.buffer = buffer;
+          const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value = 1700 + Math.random()*300;
+          const g = ctx.createGain(); g.gain.value = 0.4;
+          b.connect(bp); bp.connect(g); g.connect(master);
+          b.start(now);
+          g.gain.setValueAtTime(0.4, now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+          setTimeout(()=>{ try{ b.disconnect(); bp.disconnect(); g.disconnect(); }catch(e){} }, 900);
+        }).catch(()=>{});
+      }
+      function playChime(){
+        if(!isInit) init();
+        if(!ctx) return;
+        return resumeIfNeeded().then(()=>{
+          const now = ctx.currentTime; const freqs=[880,1320,1760];
+          freqs.forEach((f,i)=>{
+            const o = ctx.createOscillator(); o.type='sine'; o.frequency.value=f;
+            const g = ctx.createGain(); g.gain.value=0;
+            const filter = ctx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value = 7200 - i*800;
+            o.connect(filter); filter.connect(g); g.connect(master);
+            o.start(now + i*0.02);
+            g.gain.setValueAtTime(0.0001, now);
+            g.gain.exponentialRampToValueAtTime(0.12/(i+1), now + 0.02 + i*0.01);
+            g.gain.exponentialRampToValueAtTime(0.0001, now + 1.6 + i*0.05);
+            o.stop(now + 2.0 + i*0.05);
+            setTimeout(()=>{ try{ o.disconnect(); g.disconnect(); filter.disconnect(); }catch(e){} }, 2600);
+          });
+        }).catch(()=>{});
+      }
+      function playCelebration(){
+        if(!isInit) init();
+        if(!ctx) return;
+        return resumeIfNeeded().then(()=>{
+          const now = ctx.currentTime; const base=[1320,1100,880,660];
+          base.forEach((f, idx)=>{ for(let j=0;j<3;j++){
+            const o = ctx.createOscillator(); o.type='sine'; o.frequency.value = f * (1 + (Math.random()-0.5)*0.02);
+            const g = ctx.createGain(); g.gain.value=0;
+            const filter = ctx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=7200;
+            o.connect(filter); filter.connect(g); g.connect(master);
+            const start = now + idx*0.12 + j*0.03; o.start(start);
+            g.gain.setValueAtTime(0.0001,start); g.gain.exponentialRampToValueAtTime(0.18/(j+1), start+0.02); g.gain.exponentialRampToValueAtTime(0.0001, start + 1.2 + Math.random()*0.8);
+            o.stop(start + 2.4 + Math.random()*0.7);
+          }});
+          setTimeout(()=> playChime(), 160); setTimeout(()=> playChime(), 420);
+        }).catch(()=>{});
+      }
+      function setVolume(v){ if(master && ctx) safeTry(()=> master.gain.setValueAtTime(v, ctx.currentTime)); }
+      function toggle(){ if(isPlaying){ stopBackground(); return false; } else { playBackground(); return true; } }
+      return { init, playBackground, stopBackground, playClick, playChime, playCelebration, setVolume, toggle };
+    })();
+
+    // Start audio on first CTA click/gesture
+    let audioStarted = false;
+    function startAudioIfNeeded(){
+      if(audioStarted) return;
+      audioStarted = true;
+      AudioManager.init();
+      AudioManager.setVolume(parseFloat(document.getElementById('volRange').value || 0.65));
+      AudioManager.playBackground();
+      document.getElementById('audioBtn').textContent = '🔊';
+    }
+
+    // wire btn clicks to click sound (all .btn)
+    document.querySelectorAll('.btn').forEach(b => {
+      b.addEventListener('click', ()=> {
+        startAudioIfNeeded();
+        AudioManager.playClick();
+      });
     });
 
-    updateProgress();
-
-    /***********************
-     * Audio UI wiring & safeguards
-     ***********************/
+    // audio UI wiring
     const audioBtn = document.getElementById('audioBtn');
-    const volRange = document.getElementById('volRange');
-
-    // audio button starts muted icon; clicking will toggle and play click sound
     audioBtn.addEventListener('click', async ()=>{
       AudioManager.init();
       await AudioManager.playClick();
-      const playing = AudioManager.toggle();
-      audioBtn.textContent = playing ? '🔊' : '🔈';
-      // apply slider volume
-      AudioManager.setVolume(parseFloat(volRange.value || 0.65));
+      const on = AudioManager.toggle();
+      audioBtn.textContent = on ? '🔊' : '🔈';
+    });
+    document.getElementById('volRange').addEventListener('input', e=> {
+      AudioManager.setVolume(parseFloat(e.target.value));
     });
 
-    volRange.addEventListener('input', (e)=>{
-      const v = parseFloat(e.target.value);
-      AudioManager.setVolume(v);
-    });
-
-    // ensure first touch/click initializes audio context so mobile resumes correctly
+    // Ensure touchstart initializes audio context for iOS
     document.addEventListener('touchstart', function firstTouch(){ AudioManager.init(); document.removeEventListener('touchstart', firstTouch); }, {passive:true});
     document.addEventListener('click', function firstClick(){ AudioManager.init(); document.removeEventListener('click', firstClick); });
+
+    /***********************
+     * Final celebration wiring
+     ***********************/
+    const celebrateBtn = document.getElementById('celebrateBtn');
+    const finalWish = document.getElementById('finalWish');
+    celebrateBtn.addEventListener('click', ()=>{
+      startAudioIfNeeded();
+      AudioManager.playClick();
+      celebrateBtn.disabled = true;
+      gsap.to(celebrateBtn, {duration:0.4, opacity:0, scale:0.94, pointerEvents:'none', ease:'power2.inOut'});
+      gsap.to(finalWish, {duration:0.9, opacity:1, y:0, ease:'power3.out', delay:0.35});
+      AudioManager.playCelebration();
+      launchConfettiSequence();
+      heartsSwirlOut();
+      gsap.to('.aurora', {duration:1.2, filter:'blur(28px) contrast(1.09) saturate(1.18)', ease:'power1.inOut', yoyo:true, repeat:1});
+    });
+
+    /***********************
+     * Initial page micro-animations
+     ***********************/
+    gsap.from('body', {duration:1.0, opacity:0, ease:'power2.out'});
+    gsap.to('#steps-root', {duration:8, y:-6, repeat:-1, yoyo:true, ease:'sine.inOut'});
+
+    /***********************
+     * Ensure step positioning safety: if new card ends below viewport, snap back
+     ***********************/
+    const originalOverflow = document.documentElement.style.overflow || '';
+    function safeShowStep(index){
+      showStep(index);
+      // fallback: if the newly activated element is out of view, scroll top (shouldn't happen but safety)
+      setTimeout(()=>{
+        const active = document.querySelector('.card.step.active');
+        if(active){
+          const rect = active.getBoundingClientRect();
+          if(rect.top > window.innerHeight || rect.bottom < 0){
+            try{ window.scrollTo({ top: 0, behavior: 'smooth' }); }catch(e){}
+          }
+        }
+      }, 300);
+    }
+
+    // Replace previous navigation to use safeShowStep
+    document.querySelectorAll('[data-next]').forEach(btn=>{
+      btn.addEventListener('click', (ev)=>{
+        ev.preventDefault();
+        startAudioIfNeeded();
+        AudioManager.playClick();
+        setTimeout(()=> AudioManager.playChime(), 120);
+        safeShowStep(Math.min(currentStep + 1, totalSteps - 1));
+      });
+    });
+
+    // Ensure only step-1 active initially (already set), but animate to entry
+    showStep(0);
+
+    // Accessibility: roles, keyboard nav
+    window.addEventListener('keydown', (e)=>{
+      if(e.key === 'ArrowRight') safeShowStep(Math.min(currentStep + 1, totalSteps - 1));
+      if(e.key === 'ArrowLeft') safeShowStep(Math.max(currentStep - 1, 0));
+    });
+
+    /***********************
+     * Small accessibility / performance tweaks
+     ***********************/
+    // reduce heavy blur on low-end devices
+    try {
+      const isLowPower = navigator.deviceMemory && navigator.deviceMemory < 2;
+      if(isLowPower) document.querySelector('.aurora').style.filter = 'blur(24px) contrast(1.01)';
+    } catch(e){}
 
   </script>
 </body>
