@@ -3,683 +3,622 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A Special Day Just For You</title>
+    <title>A Special World For You</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.0/dist/confetti.browser.min.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
 
     <style>
-        /* Global Styles & Aurora Background */
+        /*
+         * CORE DESIGN SYSTEM & GLOBAL STYLES
+         * Tailwind Configuration and Custom CSS
+        */
         :root {
-            --bg-color: #0c0a09;
-            --card-color: rgba(12, 10, 9, 0.75);
-            --pink-start: #f87171; 
-            --pink-end: #dc2626; 
-            --glass-border: rgba(255, 255, 255, 0.1);
+            /* Custom Colors for Aurora/Gradient */
+            --color-pink: hsla(333, 70%, 55%, 0.4);
+            --color-purple: hsla(282, 82%, 54%, 0.3);
+            --color-blue: hsla(210, 89%, 60%, 0.3);
+            --color-gold: hsla(35, 90%, 60%, 0.3);
+            /* Primary Dark Background */
+            --color-bg-dark: #0c0a09;
         }
 
-        body {
-            background-color: var(--bg-color);
-            color: #e5e5e5;
-            min-height: 100vh;
-            overflow-x: hidden;
-            font-family: 'Montserrat', sans-serif;
-            position: relative;
-        }
-
-        /* Aurora Gradient Animation Layer 1 */
-        .aurora-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -2;
-            background: radial-gradient(circle at 10% 20%, hsla(333,70%,55%,.4) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 90%, hsla(282, 82%, 54%, .3) 0%, transparent 50%),
-                        radial-gradient(circle at 50% 50%, hsla(210, 89%, 60%, .3) 0%, transparent 50%),
-                        radial-gradient(circle at 20% 80%, hsla(35, 90%, 60%, .3) 0%, transparent 50%);
-            background-size: 400% 400%;
-            animation: aurora-flow 60s ease-in-out infinite alternate;
-        }
-
-        @keyframes aurora-flow {
-            0% { background-position: 0% 50%, 100% 50%, 50% 100%, 0% 0%; }
-            25% { background-position: 25% 75%, 75% 25%, 50% 50%, 0% 100%; }
-            50% { background-position: 100% 50%, 0% 50%, 50% 0%, 100% 100%; }
-            75% { background-position: 75% 25%, 25% 75%, 50% 50%, 100% 0%; }
-            100% { background-position: 0% 50%, 100% 50%, 50% 100%, 0% 0%; }
-        }
-
-        /* Three.js Canvas Layer 2 (for 3D Hearts) */
-        #three-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        /* Typography - Playfair Display for Headings */
-        .title-font {
+        /* 1. Typography */
+        .font-playfair {
             font-family: 'Playfair Display', serif;
-            font-weight: 900;
-            font-size: 3rem; 
+        }
+        /* Custom Satoshi Placeholder (use a common sans-serif for body text) */
+        .font-satoshi {
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
         }
 
-        /* Gradient Text Effect for Headings */
-        .gradient-text {
-            background: linear-gradient(45deg, #fce7f3, #fff, #fbcfe8);
+        /* 2. Aurora Background Layer (Layer 1) */
+        @keyframes aurora-flow {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        .aurora-bg {
+            background-color: var(--color-bg-dark);
+            background-image: radial-gradient(at 20% 80%, var(--color-pink), transparent),
+                              radial-gradient(at 80% 20%, var(--color-purple), transparent),
+                              radial-gradient(at 0% 50%, var(--color-blue), transparent),
+                              radial-gradient(at 100% 50%, var(--color-gold), transparent);
+            background-size: 200% 200%;
+            animation: aurora-flow 60s ease-in-out infinite;
+        }
+
+        /* 3. Text Gradient for Headings */
+        .text-gradient-header {
+            background: linear-gradient(120deg, #ffffff 10%, #fbcfe8 50%, #f472b6 90%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             text-fill-color: transparent;
         }
 
-        /* Glassmorphism Card Style */
+        /* 4. Glassmorphism Card Style */
         .glass-card {
-            background-color: var(--card-color);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border);
-            border-radius: 1.5rem;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            padding: 2.5rem;
-            max-width: 500px; 
-            margin: 0 1rem; 
+            background-color: rgba(28, 25, 23, 0.6); /* Dark semi-transparent */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle white border */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 50px rgba(255, 105, 180, 0.15); /* Soft pinkish shadow */
         }
 
-        /* Button Styling */
+        /* 5. Pill Button Style & Interaction */
         .pill-button {
-            background: linear-gradient(90deg, var(--pink-start), var(--pink-end));
-            color: white;
-            padding: 0.75rem 2rem;
-            border-radius: 9999px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
+            background: linear-gradient(90deg, #ec4899, #ef4444); /* Pink-to-Red Gradient */
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            box-shadow: 0 0 15px rgba(252, 165, 165, 0.5); 
-            border: none;
-            cursor: pointer;
+            box-shadow: 0 0 10px rgba(236, 72, 153, 0.6); /* Soft Glow */
         }
-
         .pill-button:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 0 25px rgba(252, 165, 165, 0.8), 0 10px 20px rgba(0, 0, 0, 0.3);
+            transform: translateY(-3px) scale(1.05); /* Lift up, scale up */
+            box-shadow: 0 5px 20px rgba(236, 72, 153, 0.8); /* Intense Glow */
         }
-
         .pill-button:active {
-            transform: translateY(1px);
-            box-shadow: 0 0 10px rgba(252, 165, 165, 0.3);
+            transform: translateY(0px) scale(1.0); /* Pressed Down */
+            box-shadow: 0 0 10px rgba(236, 72, 153, 0.6);
         }
 
-        /* Progress Bar Styling */
-        .progress-track {
-            background-color: var(--card-color);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid var(--glass-border);
-            height: 8px;
-            width: 300px;
-            border-radius: 4px;
-        }
-
+        /* 6. Progress Bar Gradient */
         .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #fbcfe8, var(--pink-end));
-            border-radius: 4px;
-            width: 0%; /* Controlled by JS */
+            background: linear-gradient(90deg, #f9a8d4, #ef4444); /* Light Pink-to-Red Gradient */
+        }
+        .progress-track {
+            background-color: rgba(28, 25, 23, 0.4);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .title-font {
-                font-size: 2.25rem;
-            }
-            .glass-card {
-                padding: 1.5rem;
-                max-width: 90%; 
-            }
-            .progress-track {
-                width: 80%;
-                max-width: 250px;
-            }
+        /* 7. Pulsating Heart Icon (Step 1) */
+        @keyframes pulse-glow {
+            0% { text-shadow: 0 0 5px rgba(255, 105, 180, 0.8); transform: scale(1); }
+            50% { text-shadow: 0 0 20px rgba(255, 105, 180, 1), 0 0 40px rgba(255, 20, 147, 0.6); transform: scale(1.05); }
+            100% { text-shadow: 0 0 5px rgba(255, 105, 180, 0.8); transform: scale(1); }
+        }
+        .heart-pulse {
+            animation: pulse-glow 2s infinite ease-in-out;
+            display: inline-block;
         }
 
-        /* Step-specific styling for absolute positioning */
-        .step-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        /* 8. Polaroid Container (Step 4) */
+        .polaroid-container {
+            width: 90%;
+            max-width: 350px;
+            background-color: #ffffff;
+            padding: 10px 10px 40px 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transform: rotateZ(-5deg); /* Slight initial tilt */
+            transition: transform 0.3s ease-out;
+            border-radius: 2px;
+        }
+        .polaroid-img {
             width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            height: auto;
+            display: block;
+        }
+        .polaroid-caption {
+            color: #333;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 1.1rem;
+            font-weight: 500;
         }
 
-        /* Bento Grid Styling (Step 3) */
+        /* 9. Bento Grid for Step 3 (Responsive) */
         .bento-grid {
             display: grid;
+            gap: 1rem; /* Equivalent to Tailwind's gap-4 */
             grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            width: 100%;
         }
-
         .bento-card {
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 0.75rem;
-            padding: 1.25rem;
-            transition: transform 0.3s ease;
-            min-height: 120px;
+            padding: 1rem;
+            border-radius: 0.75rem; /* Equivalent to Tailwind's rounded-xl */
+            background-color: rgba(45, 45, 45, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
         }
-
         .bento-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 105, 180, 0.2);
         }
-
-        .bento-span-2 {
+        .bento-card-span-2 {
             grid-column: span 2 / span 2;
         }
-        
-        /* FIX: Ensures the image in the polaroid is clearly visible */
-        #polaroid img {
-            display: block;
-            max-height: 200px; 
+        @media (min-width: 768px) { /* Tablet and Desktop */
+            .bento-card-span-2-md {
+                grid-column: span 2 / span 2;
+            }
         }
-        
-        /* FIX: Ensure the final message is not centered outside the card */
-        #final-message {
-            text-align: center;
-            display: block; 
-            margin-top: 3rem; 
-            margin-bottom: 2rem;
+        @media (max-width: 767px) { /* Mobile: stack all cards */
+            .bento-grid {
+                grid-template-columns: 1fr;
+            }
+            .bento-card-span-2 {
+                grid-column: auto;
+            }
         }
+
     </style>
 </head>
 
-<body class="antialiased">
-    <div class="aurora-bg"></div>
-    <div id="three-container"></div>
+<body class="aurora-bg font-satoshi text-gray-100 min-h-screen overflow-hidden antialiased">
 
-    <div class="fixed top-5 left-1/2 -translate-x-1/2 z-50">
-        <div class="progress-track">
-            <div id="progress-bar" class="progress-bar"></div>
+    <canvas id="three-bg" class="fixed inset-0 w-full h-full z-0 pointer-events-none"></canvas>
+
+    <div class="fixed top-0 left-0 w-full h-2 z-50 flex justify-center">
+        <div class="w-11/12 max-w-lg h-full progress-track rounded-b-xl overflow-hidden">
+            <div id="progress-bar" class="progress-bar h-full w-0 transition-width duration-700 ease-out"></div>
         </div>
     </div>
 
-    <main id="content-area" class="relative w-full h-screen flex justify-center items-center p-4">
+    <main class="relative z-10 flex flex-col items-center justify-center min-h-screen p-4 sm:p-8">
+        <div id="steps-container" class="w-full max-w-lg">
 
-        <div id="step-1" class="step-container">
-            <div class="glass-card text-center max-w-sm">
-                <div class="text-6xl mb-4" id="heart-icon">❤️</div>
-                <h1 class="title-font gradient-text mb-4 text-4xl">Hey Beautiful,</h1>
-                <p class="text-gray-300 mb-6">I know by the Time of we may not talk to each others im really sorry prajju, hope this year brings new joy to you , so I tried built a little world for you, just to bring a smile to your face on your special day.</p>
-                <button class="pill-button step-button" data-next="2">Let's Begin</button>
-            </div>
-        </div>
+            <section id="step-1" data-step="1" class="step glass-card p-6 sm:p-10 rounded-3xl text-center flex flex-col items-center">
+                <div class="text-6xl sm:text-7xl mb-6 heart-pulse">❤️</div>
+                <h1 class="font-playfair text-gradient-header text-4xl sm:text-5xl font-bold mb-4">Hey Beautiful,</h1>
+                <p class="text-lg sm:text-xl text-gray-200 mb-8">I built a little world for you, just to bring a smile to your face on your special day.</p>
+                <button class="next-step-btn pill-button text-white font-bold py-3 px-8 rounded-full text-lg">Let's Begin</button>
+            </section>
 
-        <div id="step-2" class="step-container hidden">
-            <div class="glass-card text-center max-w-sm">
-                <div class="text-6xl mb-4">🎉</div>
-                <h2 class="title-font gradient-text mb-4 text-4xl">Happy Birthday!</h2>
-                <p class="text-gray-300 mb-6">Another year of you making the world brighter. Your existence is a gift, and I'm so lucky to witness it.</p>
-                <button class="pill-button step-button" data-next="3">There's more...</button>
-            </div>
-        </div>
+            <section id="step-2" data-step="2" class="step glass-card p-6 sm:p-10 rounded-3xl text-center flex flex-col items-center absolute w-full top-0 left-0 hidden">
+                <div class="text-6xl sm:text-7xl mb-6">🎉</div>
+                <h2 class="font-playfair text-gradient-header text-4xl sm:text-5xl font-bold mb-4">Happy Birthday!</h2>
+                <p class="text-lg sm:text-xl text-gray-200 mb-8">Another year of you making the world brighter. Your existence is a gift, and I'm so lucky to witness it.</p>
+                <button class="next-step-btn pill-button text-white font-bold py-3 px-8 rounded-full text-lg">There's more...</button>
+            </section>
 
-        <div id="step-3" class="step-container hidden">
-            <div class="glass-card max-w-4xl w-full"> 
-                <h2 class="title-font gradient-text mb-6 text-4xl text-center">A Few Things I Adore About You</h2>
-                <div class="bento-grid">
-                    <div class="bento-card bento-span-2">
-                        <h3 class="font-bold text-lg mb-1 text-pink-300">✨ Your Pure Kindness</h3>
-                        <p class="text-sm text-gray-400">Nuv chupinche aa kindess a genuine care wah andarini akattukontai anthe baby beautiful soul brighter the life.</p>
+            <section id="step-3" data-step="3" class="step glass-card p-6 sm:p-10 rounded-3xl text-center absolute w-full top-0 left-0 hidden">
+                <h2 class="font-playfair text-gradient-header text-3xl sm:text-4xl font-bold mb-8">A Few Things I Adore About You</h2>
+
+                <div class="bento-grid mb-8">
+                    <div class="bento-card bento-card-span-2 text-left">
+                        <h3 class="text-xl font-bold text-pink-300 mb-1">✨ Your Unmatched Kindness</h3>
+                        <p class="text-sm text-gray-300">The genuine warmth you show to everyone is something truly rare and beautiful.</p>
                     </div>
-                    <div class="bento-card">
-                        <h3 class="font-bold text-lg mb-1 text-pink-300">😊 That Smile</h3>
-                        <p class="text-sm text-gray-400">Vammo dhani Gurinchi em ani cheppai evarni happy ipotharu ni smile , neynu complete melt ayipotha</p>
+
+                    <div class="bento-card text-left">
+                        <h3 class="text-xl font-bold text-pink-300 mb-1">😊 That Smile</h3>
+                        <p class="text-sm text-gray-300">It's a work of art.</p>
                     </div>
-                    <div class="bento-card bento-span-2">
-                        <h3 class="font-bold text-lg mb-1 text-pink-300">🌟 Your Radiant Spirit</h3>
-                        <p class="text-sm text-gray-400">About your spirit niku telikunda nuvvey inspire chestav babe ni chuttu vunnavalni ,the passion you had about life is infectious</p>
+
+                    <div class="bento-card bento-card-span-2 bento-card-span-2-md text-left">
+                        <h3 class="text-xl font-bold text-pink-300 mb-1">🌟 Your Radiant Spirit</h3>
+                        <p class="text-sm text-gray-300">Your passion for life is infectious. Being around you makes everything feel more exciting and possible.</p>
                     </div>
                 </div>
-                <div class="mt-8 text-center">
-                    <button class="pill-button step-button" data-next="4">Remember this?</button>
-                </div>
-            </div>
-        </div>
 
-        <div id="step-4" class="step-container hidden">
-            <div class="glass-card max-w-xl w-full">
-                <h2 class="title-font gradient-text mb-6 text-4xl text-center">That One Time...</h2>
+                <button class="next-step-btn pill-button text-white font-bold py-3 px-8 rounded-full text-lg">Remember this?</button>
+            </section>
 
-                <div id="polaroid" class="bg-white p-2 shadow-2xl mx-auto mb-6 max-w-xs transform -rotate-3 cursor-pointer transition-transform duration-300 ease-out">
-                    <img src="https://drive.google.com/uc?id=1LLt7hdkAS2s_Y_YDdNNW7N1fNzITfGlO" alt="Our cherished memory" class="w-full h-auto object-cover" />
-                    <p class="text-sm text-center text-gray-800 p-2 font-serif italic">Our favorite memory.</p>
+            <section id="step-4" data-step="4" class="step glass-card p-6 sm:p-10 rounded-3xl text-center flex flex-col items-center absolute w-full top-0 left-0 hidden">
+                <h2 class="font-playfair text-gradient-header text-3xl sm:text-4xl font-bold mb-8">That One Time...</h2>
+
+                <div id="polaroid" class="polaroid-container relative mb-8" style="transform: rotateZ(-5deg);">
+                    <img src="https://i.ibb.co/6Z6XgCg/crush.webp" alt="A cherished shared memory" class="polaroid-img">
+                    <p class="polaroid-caption font-satoshi">Our favorite memory.</p>
                 </div>
 
-                <p class="text-gray-300 text-center mb-6 px-4">Every moment with you **Really so special for me baby** the days we fight we argue we understand we smile we laugh finally we happy together for me don't know how long we might be together its all upto anyway please never leaving again **I love you prajju so much im sorry.**</p>
-                <div class="text-center">
-                    <button class="pill-button step-button" data-next="5">One last thing...</button>
-                </div>
-            </div>
+                <p class="text-lg sm:text-xl text-gray-200 mb-8">Every moment with you feels like a scene from a movie I'd watch on repeat.</p>
+                <button class="next-step-btn pill-button text-white font-bold py-3 px-8 rounded-full text-lg">One last thing...</button>
+            </section>
+
+            <section id="step-5" data-step="5" class="step glass-card p-6 sm:p-10 rounded-3xl text-center flex flex-col items-center absolute w-full top-0 left-0 hidden">
+                <div class="text-6xl sm:text-7xl mb-6">🎂</div>
+                <h2 class="font-playfair text-gradient-header text-4xl sm:text-5xl font-bold mb-4">My Wish For You</h2>
+                <p class="text-lg sm:text-xl text-gray-200 mb-8">May the next year bring you all the love, success, and pure happiness you so rightfully deserve. May your dreams soar higher than ever.</p>
+
+                <div id="final-message" class="text-3xl sm:text-4xl font-playfair text-gradient-header font-bold mb-8 opacity-0 translate-y-4">Happy Birthday, my crush! ❤️</div>
+
+                <button id="celebrate-btn" class="pill-button text-white font-bold py-3 px-8 rounded-full text-lg">Celebrate!</button>
+            </section>
+
         </div>
-
-        <div id="step-5" class="step-container hidden">
-            <div class="glass-card text-center max-w-sm">
-                <div class="text-6xl mb-4">🎂</div>
-                <h2 class="title-font gradient-text mb-4 text-4xl">My Wish For You</h2>
-                <p class="text-gray-300 mb-8">May the next year bring you all the love, success, and pure happiness you so rightfully deserve. May your dreams soar higher than ever.</p>
-                
-                <p id="final-message" class="title-font gradient-text text-4xl mt-12 mb-8 opacity-0 translate-y-8 hidden">
-                    Happy Birthday, my crush! ❤️
-                </p>
-
-                <button id="finale-button" class="pill-button">Celebrate!</button>
-            </div>
-        </div>
-
     </main>
 
-
     <script>
-        // --- 1. GLOBALS & UTILITIES ---
-        const totalSteps = 5;
+        // Set the current step and total steps for progression
         let currentStep = 1;
-        const steps = Array.from({ length: totalSteps }, (_, i) => document.getElementById(`step-${i + 1}`));
+        const totalSteps = 5;
+
+        // Element references
+        const stepsContainer = document.getElementById('steps-container');
         const progressBar = document.getElementById('progress-bar');
-        const contentArea = document.getElementById('content-area');
+        const nextStepButtons = document.querySelectorAll('.next-step-btn');
+        const celebrateButton = document.getElementById('celebrate-btn');
+        const finalMessage = document.getElementById('final-message');
+        const polaroid = document.getElementById('polaroid');
+        const body = document.body;
 
-        // --- 2. GSAP ANIMATION AND NAVIGATION LOGIC ---
+        /*
+         * CORE FUNCTIONALITY: STEP TRANSITION & PROGRESS
+         */
 
-        // Sets the initial state for an incoming step (faded, scaled down, slightly offset)
-        function setInitialStepState(step) {
-            gsap.set(step, { autoAlpha: 0, scale: 0.95, y: 20, pointerEvents: 'none' });
-            // Stagger set for internal elements (text, buttons, etc.)
-            gsap.set(step.querySelectorAll('h1, h2, h3, p, button, .bento-grid, #polaroid'), { autoAlpha: 0, y: 15 });
+        /**
+         * Updates the progress bar visually.
+         */
+        function updateProgress() {
+            const percentage = (currentStep / totalSteps) * 100;
+            progressBar.style.width = `${percentage}%`;
         }
 
-        // Animates a step in and its internal elements with a stagger
-        function animateStepIn(step) {
-            step.classList.remove('hidden');
-            gsap.to(step, {
-                autoAlpha: 1,
-                scale: 1,
-                y: 0,
-                duration: 0.8,
-                ease: "power3.out",
-                pointerEvents: 'auto',
+        /**
+         * Animates the transition between steps.
+         * @param {number} nextStepIndex - The index of the step to transition to.
+         */
+        function transitionToStep(nextStepIndex) {
+            const currentStepEl = document.querySelector(`#step-${currentStep}`);
+            const nextStepEl = document.querySelector(`#step-${nextStepIndex}`);
+
+            if (!nextStepEl) return;
+
+            // 1. Animate OUT the current step
+            gsap.to(currentStepEl, {
+                opacity: 0,
+                scale: 0.95,
+                y: -20,
+                duration: 0.5,
+                ease: 'power2.in',
                 onComplete: () => {
-                    // Stagger animation for internal elements
-                    gsap.to(step.querySelectorAll('h1, h2, h3, p, button, .bento-grid, #polaroid'), {
-                        autoAlpha: 1,
-                        y: 0,
-                        duration: 0.6,
-                        ease: "power2.out",
-                        stagger: 0.1
-                    });
+                    currentStepEl.classList.add('hidden'); // Hide after animation
+                    currentStep = nextStepIndex;
+                    updateProgress();
 
-                    // Special: Start pulsating heart for Step 1
-                    if (currentStep === 1) {
-                        gsap.to('#heart-icon', {
-                            scale: 1.1,
-                            duration: 1.5,
-                            repeat: -1,
-                            yoyo: true,
-                            ease: "sine.inOut"
-                        });
-                    }
-
-                    // Special: Apply 3D polaroid hover effect for Step 4
-                    if (currentStep === 4) {
-                        setupPolaroidEffect();
-                    }
+                    // 2. Animate IN the next step
+                    nextStepEl.classList.remove('hidden');
+                    gsap.fromTo(nextStepEl,
+                        { opacity: 0, scale: 0.95, y: 20 },
+                        {
+                            opacity: 1,
+                            scale: 1,
+                            y: 0,
+                            duration: 0.6,
+                            ease: 'power2.out',
+                            onStart: () => {
+                                // Staggered entrance for internal elements
+                                gsap.from(nextStepEl.children, {
+                                    opacity: 0,
+                                    y: 10,
+                                    stagger: 0.1,
+                                    duration: 0.4,
+                                    delay: 0.2
+                                });
+                            }
+                        }
+                    );
                 }
             });
         }
 
-        // Animates a step out
-        function animateStepOut(step) {
-            return new Promise(resolve => {
-                // Animate out internal elements first
-                gsap.to(step.querySelectorAll('h1, h2, h3, p, button, .bento-grid, #polaroid'), {
-                    autoAlpha: 0,
-                    y: -10,
-                    duration: 0.3,
-                    ease: "power2.in"
-                });
-
-                // Animate out the main card
-                gsap.to(step, {
-                    autoAlpha: 0,
-                    scale: 0.9,
-                    y: -10,
-                    duration: 0.5,
-                    ease: "power2.in",
-                    onComplete: () => {
-                        step.classList.add('hidden');
-                        resolve();
-                    }
-                });
-            });
-        }
-
-        // Update the progress bar
-        function updateProgressBar(step) {
-            const progress = (step - 1) / (totalSteps - 1); // 0% to 100%
-            gsap.to(progressBar, {
-                width: `${progress * 100}%`,
-                duration: 0.8,
-                ease: "power2.inOut"
-            });
-        }
-
-        // Navigation Handler
-        async function goToStep(nextStep) {
-            if (nextStep > totalSteps || nextStep < 1 || nextStep === currentStep) return;
-
-            await animateStepOut(steps[currentStep - 1]);
-
-            currentStep = nextStep;
-            updateProgressBar(currentStep);
-            
-            // Ensure the new step is correctly positioned and its initial state is set
-            setInitialStepState(steps[currentStep - 1]);
-            animateStepIn(steps[currentStep - 1]);
-        }
-
-        // Attach event listeners to all step buttons
-        document.querySelectorAll('.step-button').forEach(button => {
+        // Event listeners for step buttons
+        nextStepButtons.forEach(button => {
             button.addEventListener('click', () => {
-                const next = parseInt(button.dataset.next);
-                goToStep(next);
+                const nextStep = currentStep + 1;
+                if (nextStep <= totalSteps) {
+                    transitionToStep(nextStep);
+                }
             });
         });
 
-        // --- 3. POLAROID 3D HOVER EFFECT (Step 4) ---
-
-        function setupPolaroidEffect() {
-            const polaroid = document.getElementById('polaroid');
-            
-            // Parallax/Tilt effect on mouse movement
-            contentArea.addEventListener('mousemove', (e) => {
-                const rect = polaroid.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-                const x = e.clientX - centerX;
-                const y = e.clientY - centerY;
-
-                // Max tilt angles
-                const maxTilt = 10;
-                const rotateX = -y / centerY * maxTilt;
-                const rotateY = x / centerX * maxTilt;
-
-                gsap.to(polaroid, {
-                    rotationX: rotateX,
-                    rotationY: rotateY,
-                    x: x * 0.05, // Subtle parallax movement
-                    y: y * 0.05,
-                    ease: "power1.out",
-                    duration: 0.5
-                });
+        // Initialize the first step and progress
+        document.addEventListener('DOMContentLoaded', () => {
+            updateProgress();
+            // Initial animation for Step 1 content
+            const step1El = document.getElementById('step-1');
+            gsap.from(step1El.children, {
+                opacity: 0,
+                y: 10,
+                stagger: 0.2,
+                duration: 0.6,
+                delay: 0.5
             });
-            
-            // Reset on mouse leave 
-            polaroid.addEventListener('mouseleave', () => {
-                 gsap.to(polaroid, {
-                    rotationX: 0,
-                    rotationY: 0,
-                    x: 0,
-                    y: 0,
-                    ease: "power2.out",
-                    duration: 0.8
-                });
+        });
+
+
+        /*
+         * STEP 4 INTERACTION: POLAROID PARALLAX
+         */
+        const handlePolaroidHover = (e) => {
+            const rect = polaroid.getBoundingClientRect();
+            const x = e.clientX - rect.left; // x position within the element.
+            const y = e.clientY - rect.top;  // y position within the element.
+
+            // Center relative coordinates
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            const rx = (y - centerY) / centerY * -10; // Max rotation 10deg
+            const ry = (x - centerX) / centerX * 10;  // Max rotation 10deg
+
+            gsap.to(polaroid, {
+                rotationX: rx,
+                rotationY: ry,
+                rotationZ: -5 + (x / rect.width - 0.5) * 5, // Subtle Z tilt variation
+                duration: 0.5,
+                ease: "power2.out"
+            });
+        };
+
+        const handlePolaroidLeave = () => {
+            gsap.to(polaroid, {
+                rotationX: 0,
+                rotationY: 0,
+                rotationZ: -5,
+                duration: 0.8,
+                ease: "elastic.out(1, 0.5)"
+            });
+        };
+
+        polaroid.addEventListener('mousemove', handlePolaroidHover);
+        polaroid.addEventListener('mouseleave', handlePolaroidLeave);
+
+
+        /*
+         * GRAND FINALE SEQUENCE (Step 5)
+         */
+        celebrateButton.addEventListener('click', () => {
+            // Disable button
+            celebrateButton.disabled = true;
+            gsap.to(celebrateButton, { opacity: 0, duration: 0.3 });
+
+            // 1. Reveal Final Message
+            gsap.to(finalMessage, {
+                opacity: 1,
+                y: 0,
+                duration: 1.5,
+                ease: 'power3.out',
+                delay: 0.5
             });
 
-            // Initial 3D tilt set up
-            gsap.set(polaroid, { transformStyle: "preserve-3d" });
+            // 2. Confetti Explosion
+            startConfettiSequence();
+
+            // 3. 3D Hearts Grand Exit (Function defined in Three.js section)
+            if (window.heartsGrandExit) {
+                window.heartsGrandExit();
+            }
+        });
+
+        /**
+         * Triggers the multi-stage confetti explosion.
+         */
+        function startConfettiSequence() {
+            // Initial powerful bursts from corners
+            const initialBurst = () => {
+                confetti({
+                    particleCount: 150,
+                    startVelocity: 60,
+                    spread: 80,
+                    origin: { x: 0.2, y: 1.0 },
+                    colors: ['#ffc0cb', '#ff69b4', '#ff1493', '#ec4899', '#ef4444']
+                });
+                confetti({
+                    particleCount: 150,
+                    startVelocity: 60,
+                    spread: 80,
+                    origin: { x: 0.8, y: 1.0 },
+                    colors: ['#ffc0cb', '#ff69b4', '#ff1493', '#ec4899', '#ef4444']
+                });
+            };
+
+            // Continuous gentle shower (standard + emoji confetti)
+            const continuousShower = setInterval(() => {
+                confetti({
+                    particleCount: 20,
+                    spread: 360,
+                    ticks: 200,
+                    gravity: 0.7,
+                    zIndex: 9999,
+                    origin: { x: Math.random(), y: Math.random() - 0.2 },
+                    colors: ['#f9a8d4', '#f472b6', '#ef4444', '#f0abfc']
+                });
+
+                // Emoji Confetti
+                confetti({
+                    particleCount: 2,
+                    angle: 90,
+                    spread: 120,
+                    startVelocity: 30,
+                    scalar: 1.5,
+                    shapes: [confetti.shapeFromText({ text: '❤️', scalar: 2.5 }), confetti.shapeFromText({ text: '💖', scalar: 2 }), confetti.shapeFromText({ text: '✨', scalar: 1.8 })],
+                    zIndex: 9999,
+                    origin: { x: Math.random(), y: -0.1 },
+                    gravity: 0.6
+                });
+            }, 200);
+
+            // Execute bursts and then stop the shower after 5 seconds
+            initialBurst();
+
+            setTimeout(() => {
+                clearInterval(continuousShower);
+            }, 5000); // Confetti lasts for 5 seconds
         }
 
 
-        // --- 4. THREE.JS 3D FLOATING HEARTS (Layer 2) ---
+        /*
+         * THREE.JS: 3D FLOATING HEARTS (Layer 2)
+         */
+        const threeJSScripts = () => {
+            const canvas = document.getElementById('three-bg');
+            const sizes = { width: window.innerWidth, height: window.innerHeight };
 
-        let scene, camera, renderer, hearts = [];
-        const heartCount = 25;
-        const container = document.getElementById('three-container');
+            // Setup
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100);
+            camera.position.z = 5;
+            scene.add(camera);
 
-        function initThree() {
-            // Setup Scene, Camera, Renderer
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            container.appendChild(renderer.domElement);
-
-            camera.position.z = 25; // Viewpoint
+            const renderer = new THREE.WebGLRenderer({
+                canvas: canvas,
+                alpha: true, // Transparent background (allows CSS Aurora layer to show)
+                antialias: true
+            });
+            renderer.setSize(sizes.width, sizes.height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
             // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
             scene.add(ambientLight);
             const pointLight = new THREE.PointLight(0xffffff, 1.5);
-            pointLight.position.set(10, 10, 10);
+            pointLight.position.set(0, 5, 5);
             scene.add(pointLight);
 
-            // Heart Geometry (simplified for a quick, approximate heart shape)
-            const shape = new THREE.Shape();
-            shape.moveTo(0, 0.35);
-            shape.bezierCurveTo(0.1, 0.6, 0.5, 0.6, 0.5, 0.35);
-            shape.bezierCurveTo(0.5, 0.1, 0.3, 0, 0, -0.2);
-            shape.bezierCurveTo(-0.3, 0, -0.5, 0.1, -0.5, 0.35);
-            shape.bezierCurveTo(-0.5, 0.6, -0.1, 0.6, 0, 0.35);
+            // Heart Geometry (Simple custom heart shape)
+            const heartShape = new THREE.Shape();
+            const x = 0, y = 0;
+            heartShape.moveTo(x + 0.5, y + 0.5);
+            heartShape.bezierCurveTo(x + 0.5, y + 0.5, x + 0.4, y, x, y);
+            heartShape.bezierCurveTo(x - 0.6, y, x - 0.6, y + 0.7, x - 0.6, y + 0.7);
+            heartShape.bezierCurveTo(x - 0.6, y + 1.1, x - 0.3, y + 1.54, x + 0.5, y + 1.9);
+            heartShape.bezierCurveTo(x + 1.3, y + 1.54, x + 1.6, y + 1.1, x + 1.6, y + 0.7);
+            heartShape.bezierCurveTo(x + 1.6, y + 0.7, x + 1.6, y, x + 1.0, y);
+            heartShape.bezierCurveTo(x + 1.0, y, x + 0.8, y, x + 0.5, y + 0.5);
 
-            const extrudeSettings = {
+            const heartGeometry = new THREE.ExtrudeGeometry(heartShape, {
                 depth: 0.1,
                 bevelEnabled: true,
                 bevelSegments: 2,
                 steps: 2,
                 bevelSize: 0.05,
                 bevelThickness: 0.05
-            };
-            const heartGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            });
+            heartGeometry.center();
 
-            // Create Hearts
-            for (let i = 0; i < heartCount; i++) {
-                const color = new THREE.Color().setHSL(Math.random() * 0.1 + 0.9, 0.8, Math.random() * 0.2 + 0.7); // Pink/Red Hues
+            const hearts = [];
+            const numHearts = 25;
+
+            // Create 3D Hearts
+            for (let i = 0; i < numHearts; i++) {
                 const material = new THREE.MeshPhongMaterial({
-                    color: color,
-                    shininess: 90,
-                    specular: 0xffffff
+                    color: new THREE.Color(Math.random() * 0.1 + 0.9, Math.random() * 0.1 + 0.3, Math.random() * 0.1 + 0.4), // Pink/Red Tones
+                    specular: 0xffffff,
+                    shininess: 100, // Slight sheen
+                    transparent: true,
+                    opacity: 0.8
                 });
+
                 const heart = new THREE.Mesh(heartGeometry, material);
-                
-                // Random position in a box centered on origin
-                heart.position.set(
-                    (Math.random() - 0.5) * 40,
-                    (Math.random() - 0.5) * 40,
-                    (Math.random() - 0.5) * 40
-                );
-                
-                // Random size and rotation
-                const scale = Math.random() * 0.8 + 0.5;
+
+                // Initial Random Placement
+                heart.position.x = (Math.random() - 0.5) * 15;
+                heart.position.y = (Math.random() - 0.5) * 15;
+                heart.position.z = (Math.random() - 0.5) * 10;
+
+                // Random Scale and Rotation
+                const scale = Math.random() * 0.4 + 0.2;
                 heart.scale.set(scale, scale, scale);
                 heart.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
 
-                // Store initial sine wave offset for independent motion
-                heart.userData.offset = Math.random() * 100;
+                // Store initial position for sine-wave animation
+                heart.userData.initialY = heart.position.y;
+                heart.userData.speed = Math.random() * 0.01 + 0.005;
+                heart.userData.rotationSpeed = Math.random() * 0.005 + 0.001;
 
-                scene.add(heart);
                 hearts.push(heart);
+                scene.add(heart);
             }
 
-            window.addEventListener('resize', onWindowResize, false);
-        }
+            // Animation Loop
+            const clock = new THREE.Clock();
+            let isExiting = false;
 
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
+            const animate = () => {
+                requestAnimationFrame(animate);
 
-        function animateHearts(time) {
-            requestAnimationFrame(() => animateHearts(time + 0.01)); // Increase time for faster animation
-            
-            // Loop through hearts for gentle drift and rotation
-            hearts.forEach((heart, index) => {
-                // Subtle rotation
-                heart.rotation.x += 0.001 * heart.scale.x;
-                heart.rotation.y += 0.0015 * heart.scale.x;
+                const elapsedTime = clock.getElapsedTime();
 
-                // Gentle sine wave motion (drift)
-                const offset = heart.userData.offset;
-                heart.position.y += Math.sin(time / 5 + offset) * 0.005;
-                heart.position.x += Math.sin(time / 8 + offset) * 0.003;
-            });
-            
-            renderer.render(scene, camera);
-        }
+                // Heart Animation (Subtle sine-wave drift)
+                hearts.forEach((heart, index) => {
+                    // Gentle vertical sine-wave motion
+                    heart.position.y = heart.userData.initialY + Math.sin(elapsedTime * heart.userData.speed * 10) * 0.5;
 
-        // --- 5. FINALE SEQUENCE (Step 5 Click) ---
+                    // Slow horizontal drift
+                    heart.position.x += Math.sin(elapsedTime * heart.userData.speed / 2) * 0.002;
+                    heart.position.z += Math.cos(elapsedTime * heart.userData.speed / 2) * 0.002;
 
-        function startFinale() {
-            const button = document.getElementById('finale-button');
-            const message = document.getElementById('final-message');
-            
-            // 1. Disable button & fade out
-            button.disabled = true;
-            gsap.to(button, { autoAlpha: 0, duration: 0.5 });
-            
-            // 2. Final message appears 
-            message.classList.remove('hidden');
-            gsap.to(message, {
-                autoAlpha: 1,
-                y: 0,
-                duration: 1.5,
-                ease: "elastic.out(1, 0.5)",
-                delay: 0.5
-            });
+                    // Subtle continuous rotation
+                    heart.rotation.x += heart.userData.rotationSpeed;
+                    heart.rotation.y += heart.userData.rotationSpeed;
 
-            // 3. Confetti Explosion
-            startConfettiSequence();
-
-            // 4. 3D Hearts Swirl Out
-            swirlHeartsFinale();
-        }
-
-        function swirlHeartsFinale() {
-            hearts.forEach((heart, index) => {
-                const angle = Math.random() * Math.PI * 2;
-                const distance = 50 + Math.random() * 20; // Swirl far out
-                const targetX = Math.cos(angle) * distance;
-                const targetY = Math.sin(angle) * distance + 50; // Swirl up off screen
-                const targetZ = heart.position.z + 50; // Swirl deeper/further
-
-                gsap.to(heart.position, {
-                    x: targetX,
-                    y: targetY,
-                    z: targetZ,
-                    duration: 4,
-                    delay: 0.5,
-                    ease: "power2.in",
-                    onComplete: () => {
-                        scene.remove(heart); // Remove from scene after animation
+                    if (isExiting) {
+                         // Final Exit Logic (GSAP handles the position/opacity)
+                    } else {
+                        // Re-cycle hearts that drift too far (keeps the scene filled)
+                        if (heart.position.y > 8) heart.position.y = -8;
+                        if (heart.position.x > 8) heart.position.x = -8;
+                        if (heart.position.z > 8) heart.position.z = -8;
+                        if (heart.position.y < -8) heart.position.y = 8;
+                        if (heart.position.x < -8) heart.position.x = 8;
+                        if (heart.position.z < -8) heart.position.z = 8;
                     }
                 });
 
-                // Fade out material
-                 gsap.to(heart.material, {
-                    opacity: 0,
-                    duration: 3,
-                    delay: 1,
-                    ease: "power1.in",
-                    onStart: () => {
-                        heart.material.transparent = true;
-                    }
-                });
+                renderer.render(scene, camera);
+            };
+
+            animate();
+
+            // Handle Resize
+            window.addEventListener('resize', () => {
+                sizes.width = window.innerWidth;
+                sizes.height = window.innerHeight;
+                camera.aspect = sizes.width / sizes.height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(sizes.width, sizes.height);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             });
-        }
 
-        function startConfettiSequence() {
-            // First: Powerful corner bursts (3 blasts each)
-            const duration = 5 * 1000;
-            const animationEnd = Date.now() + duration;
-            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
-            function fire(particleRatio, opts) {
-                confetti(Object.assign({}, defaults, opts, {
-                    particleCount: Math.floor(250 * particleRatio)
-                }));
-            }
-
-            // Burst 1: Bottom-Left
-            setTimeout(() => {
-                fire(0.25, { origin: { x: 0, y: 1 } });
-            }, 50);
-            
-            // Burst 2: Bottom-Right
-            setTimeout(() => {
-                fire(0.25, { origin: { x: 1, y: 1 } });
-            }, 300);
-
-            // Second: Continuous gentle shower of standard and emoji confetti
-            const interval = setInterval(function() {
-                const time = Date.now();
-                if (time > animationEnd) {
-                    return clearInterval(interval);
-                }
-
-                // Standard Colorful Confetti
-                fire(0.01, {
-                    particleCount: 20,
-                    angle: 60,
-                    spread: 55,
-                    origin: { x: 0 }
+            // Grand Finale Animation for Hearts
+            window.heartsGrandExit = () => {
+                isExiting = true;
+                hearts.forEach((heart, index) => {
+                    gsap.to(heart.position, {
+                        x: heart.position.x * 5, // Swirl outwards
+                        y: 15, // Float up off screen
+                        z: heart.position.z * 5,
+                        duration: 4,
+                        ease: 'power1.inOut',
+                        delay: index * 0.02 // Stagger the exit
+                    });
+                    gsap.to(heart.material, {
+                        opacity: 0,
+                        duration: 3,
+                        delay: 1 + index * 0.02 // Fade out after starting movement
+                    });
                 });
-                fire(0.01, {
-                    particleCount: 20,
-                    angle: 120,
-                    spread: 55,
-                    origin: { x: 1 }
-                });
+            };
+        };
 
-                // Emoji Confetti
-                fire(0.005, {
-                    particleCount: 10,
-                    angle: 90,
-                    spread: 80,
-                    origin: { x: Math.random() },
-                    shapes: ['heart', 'star'],
-                    scalar: 1.5
-                });
-            }, 250);
-        }
-
-        // Attach finale event listener
-        document.getElementById('finale-button').addEventListener('click', startFinale);
-
-
-        // --- 6. INITIALIZATION ---
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initialize Three.js hearts background
-            initThree();
-            animateHearts(0);
-
-            // Pre-set all steps but the first one
-            steps.slice(1).forEach(setInitialStepState);
-            
-            // Animate in the first step
-            animateStepIn(steps[0]);
-            updateProgressBar(currentStep);
-        });
+        // Run Three.js setup after the DOM is ready
+        document.addEventListener('DOMContentLoaded', threeJSScripts);
     </script>
 </body>
 </html>
