@@ -1,599 +1,771 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Happy Birthday — A Little World For You</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Happy Birthday — A Little World For You</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <!-- Three.js (r150) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/examples/js/controls/OrbitControls.js"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+  <!-- GSAP -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <!-- canvas-confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Fonts: Playfair Display & Satoshi (Fontshare) -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet">
+  <!-- Fontshare API for Satoshi -->
+  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi:400,600&display=swap">
 
-  <style>
-    :root{
-      --bg-dark: #0c0a09;
-      --muted: #e6e6e6;
-      --accent-start: #ff7aa2;
-      --accent-end: #ff3b6b;
-      --glass-border: rgba(255,255,255,0.06);
-    }
-    html,body{height:100%;margin:0;background:var(--bg-dark);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;color:var(--muted);-webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;overflow:hidden;}
-    /* Aurora background */
-    .aurora{position:fixed;inset:0;z-index:0;pointer-events:none;
-      background:
-        radial-gradient(600px 300px at 10% 20%, hsla(333,70%,55%,.35), transparent 20%),
-        radial-gradient(500px 250px at 80% 30%, hsla(282,82%,54%,.25), transparent 20%),
-        radial-gradient(600px 300px at 40% 80%, hsla(210,89%,60%,.25), transparent 20%),
-        radial-gradient(700px 350px at 60% 50%, hsla(35,90%,60%,.2), transparent 18%),
-        var(--bg-dark);
-      filter: blur(34px) contrast(1.03) saturate(1.06);
-      animation: auroraFlow 20s ease-in-out infinite;
-      mix-blend-mode:screen; opacity:0.95;
-    }
-    @keyframes auroraFlow {0%{background-position:0% 0%,0% 0%,0% 0%,0% 0%}50%{background-position:8% 12%,-6% 22%,4% -8%,-4% 6%}100%{background-position:0% 0%,0% 0%,0% 0%,0% 0%}}
-    /* three.js canvas */
-    #three-bg{position:fixed;inset:0;z-index:1;pointer-events:none}
-    /* stage centers steps */
-    #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:5;pointer-events:none}
-    /* steps root */
-    #steps-root{position:relative; width:min(920px,94vw); height:min(740px,86vh); pointer-events:auto}
-    /* cards (steps) absolutely centered inside steps-root */
-    .card.step{
-      position:absolute; inset:0; margin:auto; width:100%; max-width:920px; max-height:calc(86vh - 40px); display:flex; align-items:center; justify-content:flex-start; gap:24px;
-      box-sizing:border-box; padding:32px; border-radius:16px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border:1px solid var(--glass-border); backdrop-filter: blur(12px) saturate(120%); -webkit-backdrop-filter: blur(12px) saturate(120%);
-      box-shadow: 0 18px 50px rgba(0,0,0,0.55); overflow:visible; pointer-events:none;
-      opacity:0; transform: translateY(18px) scale(0.99);
-    }
-    .card.step.active{opacity:1; transform:translateY(0) scale(1); pointer-events:auto;}
-    .card-inner{flex:1 1 auto}
-    .icon{width:110px;height:110px;border-radius:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;font-size:44px;flex-shrink:0}
-    h1,h2{font-family:"Playfair Display",serif;margin:0;color:transparent;background-clip:text;-webkit-background-clip:text;background-image:linear-gradient(90deg,#ffd6ea 10%, #fff 40%, #ffb3c9 70%);font-weight:700}
-    h1{font-size:clamp(28px,4.6vw,44px); line-height:1.02}
-    h2{font-size:clamp(20px,2.6vw,28px)}
-    p{font-family:Inter,system-ui; margin:12px 0 0 0; color:rgba(255,255,255,0.92); font-size:clamp(14px,1.6vw,16px); line-height:1.45}
-    .btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;background:linear-gradient(90deg,var(--accent-start),var(--accent-end));color:white;font-weight:700;border:none;cursor:pointer;box-shadow:0 10px 30px rgba(255,80,140,0.12); transform-origin:center; transition:transform .18s, box-shadow .18s; user-select:none}
-    .btn:hover{transform:translateY(-6px) scale(1.05); box-shadow:0 18px 48px rgba(255,80,140,0.22)}
-    .btn:active{transform:translateY(2px) scale(.99)}
-    .pulse{animation:pulse 1.6s ease-in-out infinite}
-    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
-    /* Bento */
-    .bento{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:12px}
-    .bento .item{background:rgba(255,255,255,0.02);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);min-height:84px}
-    .bento .big{grid-column:span 2; min-height:120px}
-    .bento h3{font-family:"Playfair Display",serif;margin:0;color:transparent;background-clip:text;-webkit-background-clip:text;background-image:linear-gradient(90deg,#ffd6ea,#fff,#ffc1da)}
-    .bento p{margin:0}
-    /* polaroid */
-    .polaroid{width:320px; max-width:44vw; background:#fff; padding:12px;border-radius:10px; box-shadow:0 14px 38px rgba(0,0,0,0.55); transform-style:preserve-3d; transition:transform .28s}
-    .polaroid img{width:100%;display:block;border-radius:6px}
-    .caption{margin-top:10px;font-size:13px;color:#303030;text-align:center}
-    /* final wish */
-    .final-wish{font-family:"Playfair Display", serif; font-size:clamp(26px,4.4vw,40px); margin-top:14px; color:transparent; background-clip:text; -webkit-background-clip:text; background-image: linear-gradient(90deg,#fff9f2,#ffd6ea 60%, #ffb3c9 100%); text-align:center; opacity:0; transform:translateY(12px)}
-    /* progress */
-    .progress-wrap{position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:12; width:min(780px,92vw); height:10px; border-radius:999px; background:rgba(255,255,255,0.035); padding:2px; display:flex; align-items:center; box-shadow:0 6px 18px rgba(0,0,0,0.45); backdrop-filter:blur(6px)}
-    .progress{height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,var(--accent-start),var(--accent-end)); transition:width .7s cubic-bezier(.2,.9,.2,1)}
-    /* audio UI */
-    .audio-toggle{position:fixed; right:18px; bottom:18px; z-index:60; background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.06); padding:10px; border-radius:999px; box-shadow:0 10px 30px rgba(0,0,0,0.45); display:flex; gap:8px; align-items:center; backdrop-filter:blur(6px)}
-    .audio-toggle button{background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer}
-    .audio-toggle input[type="range"]{width:90px}
-    /* responsiveness */
-    @media (max-width:900px){
-      #steps-root{height:auto; padding:18px}
-      .card.step{flex-direction:column; align-items:flex-start; padding:20px; gap:16px; max-height:82vh; overflow:auto}
-      .icon{width:86px;height:86px;font-size:36px;border-radius:12px}
-      .polaroid{width:88%}
-      .bento{grid-template-columns:repeat(2,1fr)}
-      .bento .big{grid-column:span 2}
-      .progress-wrap{top:12px;height:9px}
-    }
-    @media (max-width:480px){
-      body,html{overflow:hidden}
-    }
-  </style>
+  <style>
+    :root{
+      --bg:#0c0a09;
+      --glass-bg: rgba(255,255,255,0.03);
+      --glass-border: rgba(255,255,255,0.06);
+      --muted:#cfcfd3;
+      --accent-start:#ff5fa8;
+      --accent-end:#ff2e50;
+      --card-radius:18px;
+    }
+
+    html,body,#app{
+      height:100%;
+      margin:0;
+      font-family: "Satoshi", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:var(--bg);
+      color:var(--muted);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      overflow:hidden;
+    }
+
+    /* Aurora layer (breathing radial gradients) */
+    .aurora {
+      position:fixed;
+      inset:0;
+      z-index:0;
+      background: radial-gradient(400px at 10% 20%, hsla(333,70%,55%,.28), transparent 20%),
+                  radial-gradient(420px at 80% 30%, hsla(282,82%,54%,.22), transparent 18%),
+                  radial-gradient(520px at 60% 80%, hsla(210,89%,60%,.20), transparent 18%),
+                  radial-gradient(620px at 30% 70%, hsla(35,90%,60%,.17), transparent 20%),
+                  var(--bg);
+      filter: blur(40px) saturate(1.05);
+      animation: breathe 18s linear infinite;
+      mix-blend-mode: screen;
+      pointer-events:none;
+    }
+    @keyframes breathe{
+      0%{ transform: translateY(0) scale(1) rotate(0deg); filter: blur(36px) saturate(1); opacity:1; }
+      50%{ transform: translateY(-12px) scale(1.03) rotate(0.3deg); filter: blur(42px) saturate(1.1); opacity:0.95; }
+      100%{ transform: translateY(0) scale(1) rotate(0deg); filter: blur(36px) saturate(1); opacity:1; }
+    }
+
+    /* Canvas Three.js container */
+    #three-bg {
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+    }
+
+    /* Glass card styles */
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      backdrop-filter: blur(10px) saturate(1.1);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--card-radius);
+      box-shadow: 0 10px 30px rgba(2,3,7,0.6);
+      padding:28px;
+      max-width:880px;
+      margin:18px auto;
+      color:var(--muted);
+    }
+
+    h1, h2 {
+      font-family: "Playfair Display", serif;
+      margin:0 0 8px 0;
+      line-height:1.05;
+      letter-spacing:-0.02em;
+      font-weight:700;
+      color:transparent;
+      -webkit-background-clip:text;
+      background-clip:text;
+      background-image: linear-gradient(90deg, #ffb6d8 0%, #ffdce6 35%, #fff 70%);
+      text-shadow: 0 4px 18px rgba(0,0,0,0.6);
+    }
+
+    p { margin:10px 0 18px 0; color: #dcdbe0; font-size:1rem; }
+
+    /* Buttons */
+    .btn {
+      display:inline-flex;
+      gap:10px;
+      align-items:center;
+      padding:12px 20px;
+      cursor:pointer;
+      border-radius:999px;
+      border: none;
+      font-weight:600;
+      font-family:"Satoshi", system-ui, sans-serif;
+      transform-origin:center;
+      box-shadow: 0 6px 24px rgba(255,46,80,0.12);
+      background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+      color:white;
+      transition: transform .18s ease, box-shadow .18s ease;
+      user-select:none;
+    }
+    .btn:hover {
+      transform: translateY(-6px) scale(1.05);
+      box-shadow: 0 16px 40px rgba(255,46,80,0.22);
+    }
+    .btn:active {
+      transform: translateY(-2px) scale(.99);
+    }
+    .btn[disabled]{
+      opacity:.5;
+      pointer-events:none;
+      transform:none;
+      box-shadow:none;
+    }
+
+    /* Progress bar at top-center */
+    .progress-wrap {
+      position:fixed;
+      top:18px;
+      left:50%;
+      transform:translateX(-50%);
+      width: min(720px, 90%);
+      z-index:60;
+      pointer-events:none;
+      display:flex;
+      justify-content:center;
+    }
+    .progress-track {
+      width:100%;
+      height:8px;
+      border-radius:999px;
+      background: rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.03);
+      padding:2px;
+      backdrop-filter: blur(6px);
+    }
+    .progress-bar {
+      height:100%;
+      width:0%;
+      border-radius:999px;
+      background: linear-gradient(90deg,var(--accent-start),var(--accent-end));
+      box-shadow: 0 6px 18px rgba(255,46,80,0.12), inset 0 0 20px rgba(255,255,255,0.02);
+      transition: width .7s cubic-bezier(.2,.9,.2,1);
+    }
+
+    /* Layout */
+    .stage {
+      position:relative;
+      z-index:50;
+      height:100%;
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 32px;
+      box-sizing:border-box;
+      overflow:auto;
+    }
+
+    .step-container {
+      width:100%;
+      max-width:980px;
+      margin:auto;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:18px;
+      align-items:center;
+    }
+
+    .center {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      text-align:center;
+    }
+
+    .icon-large {
+      font-size:84px;
+      filter: drop-shadow(0 8px 34px rgba(255,95,168,0.18));
+      transform-origin:center;
+      margin-bottom:6px;
+    }
+    .heart-beat{
+      animation: beat 1.8s ease-in-out infinite;
+    }
+    @keyframes beat{
+      0%{ transform:scale(1); opacity:0.95; filter: drop-shadow(0 4px 18px rgba(255,95,168,0.12)); }
+      50%{ transform:scale(1.08); opacity:1; filter: drop-shadow(0 12px 36px rgba(255,95,168,0.22)); }
+      100%{ transform:scale(1); opacity:0.95; }
+    }
+
+    /* Bento grid for step 3 */
+    .bento {
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-auto-rows: 140px;
+      gap:12px;
+    }
+    .bento-card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+      border-radius:14px;
+      padding:14px;
+      border:1px solid rgba(255,255,255,0.03);
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+    }
+    .bento-card.large { grid-column: span 2; grid-row: span 1; }
+    .bento-title { font-weight:700; font-family: "Playfair Display", serif; margin-bottom:6px; color:transparent; background-clip:text; -webkit-background-clip:text; background-image: linear-gradient(90deg,#ffd5ea,#ffecf5); }
+    .bento-text { font-size:.95rem; color:#e7e6ea; }
+
+    /* Polaroid */
+    .polaroid {
+      width:320px;
+      max-width:84vw;
+      background:linear-gradient(180deg,#fff,#f7f7f7);
+      padding:12px 12px 18px 12px;
+      border-radius:12px;
+      box-shadow: 0 18px 48px rgba(2,3,7,0.55);
+      transform-style:preserve-3d;
+      transition: transform .18s ease;
+      cursor:grab;
+      border: 1px solid rgba(0,0,0,0.06);
+      perspective:1000px;
+    }
+    .polaroid img {
+      width:100%;
+      display:block;
+      border-radius:8px;
+    }
+    .polaroid .caption {
+      margin-top:10px;
+      font-weight:600;
+      color:#333;
+      text-align:left;
+      font-family:"Satoshi",sans-serif;
+      font-size:.95rem;
+    }
+
+    /* Footer controls: mute */
+    .controls {
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      z-index:80;
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .mute-toggle {
+      background: rgba(255,255,255,0.03);
+      border:1px solid rgba(255,255,255,0.04);
+      padding:10px;
+      border-radius:12px;
+      color:var(--muted);
+      cursor:pointer;
+      backdrop-filter: blur(6px);
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      font-weight:600;
+    }
+
+    /* Responsive tweaks */
+    @media (max-width:900px){
+      h1{ font-size:26px; }
+      .icon-large { font-size:64px; }
+      .bento { grid-template-columns: repeat(2, 1fr); grid-auto-rows:120px;}
+      .bento-card.large { grid-column: span 2; }
+    }
+    @media (max-width:520px){
+      .card { padding:18px; border-radius:14px; margin:12px; }
+      .progress-wrap{ top:12px; }
+      .polaroid { width:86vw; }
+    }
+
+  </style>
 </head>
 <body>
-    <div class="aurora" aria-hidden="true"></div>
-  <div id="three-bg" aria-hidden="true"></div>
+  <div class="aurora" aria-hidden="true"></div>
+  <canvas id="three-bg"></canvas>
 
-    <div class="progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-    <div id="progressBar" class="progress"></div>
-  </div>
+  <!-- Progress -->
+  <div class="progress-wrap" aria-hidden="true">
+    <div class="progress-track">
+      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+  </div>
 
-    <div id="stage">
-    <div id="steps-root" aria-live="polite">
-            <div class="card step active" id="step-1" data-step="1">
-        <div class="icon" aria-hidden="true"><div class="pulse" style="font-size:46px">❤️</div></div>
-        <div class="card-inner">
-          <h1>Hey Beautiful,</h1>
-          <p>I built a little world for you, just to bring a smile to your face on your special day.</p>
-          <div style="margin-top:18px">
-            <button class="btn" data-next>Let's Begin</button>
-          </div>
-        </div>
-      </div>
+  <div id="app" class="stage">
+    <!-- Steps stack -->
+    <div id="steps" class="step-container w-full">
 
-            <div class="card step" id="step-2" data-step="2">
-        <div class="icon" aria-hidden="true"><div style="font-size:42px">🎉</div></div>
-        <div class="card-inner">
-          <h2>Happy Birthday!</h2>
-          <p>Another year of you making the world brighter. Your existence is a gift, and I'm so lucky to witness it.</p>
-          <div style="margin-top:18px">
-            <button class="btn" data-next>There's more...</button>
-          </div>
-        </div>
-      </div>
+      <!-- Step 1 -->
+      <div class="card center step" data-step="1" style="opacity:1;">
+        <div class="icon-large heart-beat" id="welcomeIcon">❤️</div>
+        <h1>Hey Beautiful,</h1>
+        <p>I built a little world for you, just to bring a smile to your face on your special day.</p>
+        <div style="display:flex;gap:12px;justify-content:center">
+          <button class="btn" data-next>Let's Begin</button>
+        </div>
+      </div>
 
-            <div class="card step" id="step-3" data-step="3">
-        <div style="width:160px; flex-shrink:0;">
-          <div class="icon" style="height:160px;width:160px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:32px">💖</div>
-          </div>
-        <div class="card-inner">
-          <h2>A Few Things I Adore About You</h2>
-          <div class="bento">
-            <div class="item big"><h3>✨ Your Unmatched Kindness</h3><p>The genuine warmth you show to everyone is something truly rare and beautiful.</p></div>
-            <div class="item"><h3>😊 That Smile</h3><p>It's a work of art.</p></div>
-            <div class="item big"><h3>🌟 Your Radiant Spirit</h3><p>Your passion for life is infectious. Being around you makes everything feel more exciting and possible.</p></div>
-          </div>
-          <div style="margin-top:16px"><button class="btn" data-next>Remember this?</button></div>
-        </div>
-      </div>
+      <!-- Step 2 -->
+      <div class="card center step hidden" data-step="2" style="opacity:0;">
+        <div class="icon-large" id="partyIcon">🎉</div>
+        <h1>Happy Birthday!</h1>
+        <p>Another year of you making the world brighter. Your existence is a gift, and I'm so lucky to witness it.</p>
+        <div style="display:flex;gap:12px;justify-content:center">
+          <button class="btn" data-next>There's more...</button>
+        </div>
+      </div>
 
-            <div class="card step" id="step-4" data-step="4">
-        <div style="width:340px;display:flex;align-items:center;justify-content:center">
-          <div class="polaroid" id="polaroid" style="cursor:grab">
-            <img src="https://i.ibb.co/6Z6XgCg/crush.webp" alt="Our memory" />
-            <div class="caption">Our favorite memory.</div>
-          </div>
-        </div>
-        <div class="card-inner">
-          <h2>That One Time...</h2>
-          <p>Every moment with you feels like a scene from a movie I'd watch on repeat.</p>
-          <div style="margin-top:18px"><button class="btn" data-next>One last thing...</button></div>
-        </div>
-      </div>
+      <!-- Step 3 -->
+      <div class="card step hidden" data-step="3" style="opacity:0;">
+        <h2>A Few Things I Adore About You</h2>
+        <div class="bento" style="margin-top:12px;">
+          <div class="bento-card large">
+            <div class="bento-title">✨ Your Unmatched Kindness</div>
+            <div class="bento-text">The genuine warmth you show to everyone is something truly rare and beautiful.</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-title">😊 That Smile</div>
+            <div class="bento-text">It's a work of art.</div>
+          </div>
+          <div class="bento-card large">
+            <div class="bento-title">🌟 Your Radiant Spirit</div>
+            <div class="bento-text">Your passion for life is infectious. Being around you makes everything feel more exciting and possible.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;justify-content:center;margin-top:16px">
+          <button class="btn" data-next>Remember this?</button>
+        </div>
+      </div>
 
-            <div class="card step" id="step-5" data-step="5">
-        <div class="icon" style="height:110px;width:110px;border-radius:16px"><div style="font-size:42px">🎂</div></div>
-        <div class="card-inner">
-          <h2>My Wish For You</h2>
-          <p>May the next year bring you all the love, success, and pure happiness you so rightfully deserve. May your dreams soar higher than ever.</p>
-          <div style="margin-top:18px; display:flex; gap:14px; align-items:center">
-            <button class="btn" id="celebrateBtn">Celebrate!</button>
-            <div style="flex:1"></div>
-          </div>
-          <div class="final-wish" id="finalWish">Happy Birthday, my crush! ❤️</div>
-        </div>
-      </div>
-    </div>
-  </div>
+      <!-- Step 4 -->
+      <div class="card center step hidden" data-step="4" style="opacity:0;">
+        <h2>That One Time...</h2>
+        <div style="margin:18px 0;">
+          <div class="polaroid" id="polaroid">
+            <img src="https://i.ibb.co/6Z6XgCg/crush.webp" alt="Our memory">
+            <div class="caption">Our favorite memory.</div>
+          </div>
+        </div>
+        <p>Every moment with you feels like a scene from a movie I'd watch on repeat.</p>
+        <div style="display:flex;gap:12px;justify-content:center">
+          <button class="btn" data-next>One last thing...</button>
+        </div>
+      </div>
 
-    <canvas id="confetti-canvas" style="position:fixed;pointer-events:none;inset:0;z-index:50"></canvas>
+      <!-- Step 5 -->
+      <div class="card center step hidden" data-step="5" style="opacity:0;">
+        <div class="icon-large" id="cakeIcon">🎂</div>
+        <h1>My Wish For You</h1>
+        <p>May the next year bring you all the love, success, and pure happiness you so rightfully deserve. May your dreams soar higher than ever.</p>
+        <div id="finalMessage" style="margin-top:12px;min-height:48px;"></div>
+        <div style="display:flex;gap:12px;justify-content:center;margin-top:8px">
+          <button class="btn" id="celebrateBtn">Celebrate!</button>
+        </div>
+      </div>
 
-    <div class="audio-toggle" id="audioToggle" aria-hidden="false">
-    <button id="audioBtn" title="Toggle music">🔈</button>
-    <input id="volRange" type="range" min="0" max="1" step="0.01" value="0.65" />
-  </div>
+    </div>
+  </div>
 
-  <script>
-    /***********************
-     * Utilities & State
-     ***********************/
-    const steps = Array.from(document.querySelectorAll('.card.step'));
-    let currentStep = 0;
-    const totalSteps = steps.length;
-    const progressBar = document.getElementById('progressBar');
+  <!-- Controls -->
+  <div class="controls">
+    <div class="mute-toggle" id="muteToggle" aria-pressed="false">🔊 Sound ON</div>
+  </div>
 
-    // Step 1 is active from the start, no need to touch classes here.
+  <script>
+    /*****************************************
+     * Basic state + utility
+     *****************************************/
+    const steps = Array.from(document.querySelectorAll('.step'));
+    let current = 0; // 0-based index
+    const total = steps.length;
+    const progressBar = document.getElementById('progressBar');
 
-    function updateProgress(){
-      const pct = Math.round((currentStep / (totalSteps - 1)) * 100);
-      progressBar.style.width = pct + '%';
-      document.querySelector('.progress-wrap').setAttribute('aria-valuenow', pct);
-    }
+    function setProgress(i) {
+      const pct = Math.round(((i)/ (total - 1)) * 100);
+      progressBar.style.width = pct + '%';
+    }
+    setProgress(0);
 
-    /***********************
-     * Show step (centered, no scroll)
-     ***********************/
-    function showStep(index){
-      if(index < 0) index = 0;
-      if(index >= totalSteps) index = totalSteps - 1;
+    // Simple show/hide with GSAP
+    function gotoStep(index) {
+      if (index < 0 || index >= steps.length) return;
+      const prev = steps[current];
+      const next = steps[index];
+      if (prev === next) return;
+      // animate out prev
+      gsap.timeline()
+        .to(prev, {duration:.45, opacity:0, scale:.96, y:20, ease:"power2.inOut", onComplete: ()=> prev.classList.add('hidden')})
+        .fromTo(next, {opacity:0, scale:1.03, y:24}, {duration:.7, opacity:1, scale:1, y:0, ease:"power3.out", onStart: ()=> {
+          next.classList.remove('hidden');
+        }});
+      current = index;
+      setProgress(current);
+    }
 
-      const prev = steps[currentStep];
-      const next = steps[index];
-      if(prev && prev !== next){
-        gsap.to(prev, {duration:0.45, opacity:0, scale:0.98, y:10, ease:'power3.inOut', pointerEvents:'none', onComplete:()=> { prev.classList.remove('active'); }});
-      }
-      // ensure snap to top as fail-safe if layout shifted
-      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e){ /* ignore */ }
+    // Next buttons
+    document.querySelectorAll('[data-next]').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        playClick();
+        gotoStep(Math.min(current+1, total-1));
+      });
+    });
 
-      // animate in next
-      next.classList.add('active');
-      gsap.fromTo(next, {opacity:0, y:18, scale:0.99}, {duration:0.6, opacity:1, y:0, scale:1, ease:'power3.out', onStart:()=>{
-        // stagger inner elements
-        const innerEls = next.querySelectorAll('h1,h2,p,.btn,.bento .item,.polaroid');
-        if(innerEls.length) gsap.from(innerEls, {duration:0.6, y:8, opacity:0, stagger:0.06, ease:'power3.out'});
-      }});
-      currentStep = index;
-      updateProgress();
-    }
+    // Polaroid cursor parallax
+    const polaroid = document.getElementById('polaroid');
+    polaroid?.addEventListener('mousemove', (e)=>{
+      const r = polaroid.getBoundingClientRect();
+      const cx = r.left + r.width/2;
+      const cy = r.top + r.height/2;
+      const dx = (e.clientX - cx) / r.width;
+      const dy = (e.clientY - cy) / r.height;
+      polaroid.style.transform = `rotateY(${dx*8}deg) rotateX(${ -dy*6 }deg) translateZ(6px)`;
+    });
+    polaroid?.addEventListener('mouseleave', ()=> polaroid.style.transform='rotateY(0) rotateX(0)');
 
-    updateProgress(); // Initial progress set
+    /*****************************************
+     * Sound system (WebAudio synthesized for copyright-free audio)
+     *****************************************/
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let audioEnabled = true;
+    const muteToggle = document.getElementById('muteToggle');
+    muteToggle.addEventListener('click', ()=>{
+      audioEnabled = !audioEnabled;
+      muteToggle.textContent = audioEnabled ? '🔊 Sound ON' : '🔈 Muted';
+      muteToggle.setAttribute('aria-pressed', String(!audioEnabled));
+      if (!audioEnabled) audioCtx.suspend(); else audioCtx.resume();
+    });
 
-    /***********************
-     * Polaroid tilt/parallax (touch-friendly)
-     ***********************/
-    (function(){
-      const polaroid = document.getElementById('polaroid');
-      if(!polaroid) return;
-      let rect = polaroid.getBoundingClientRect();
-      function onMove(e){
-        const cx = e.clientX || (e.touches && e.touches[0].clientX);
-        const cy = e.clientY || (e.touches && e.touches[0].clientY);
-        if(!cx || !cy) return;
-        const x = cx - (rect.left + rect.width/2);
-        const y = cy - (rect.top + rect.height/2);
-        const rx = (-y / rect.height) * 8;
-        const ry = (x / rect.width) * 8;
-        gsap.to(polaroid, {duration:0.35, rotationX: rx, rotationY: ry, ease:'power3.out', transformOrigin:'center center'});
-      }
-      function enter(){ rect = polaroid.getBoundingClientRect(); document.addEventListener('mousemove', onMove); document.addEventListener('touchmove', onMove, {passive:true}); }
-      function leave(){ document.removeEventListener('mousemove', onMove); gsap.to(polaroid, {duration:0.6, rotationX:0, rotationY:0, ease:'elastic.out(1,0.6)'}); }
-      polaroid.addEventListener('mouseenter', enter);
-      polaroid.addEventListener('mouseleave', leave);
-      polaroid.addEventListener('touchstart', enter, {passive:true});
-      polaroid.addEventListener('touchend', leave);
-    })();
+    // Click sound: short pitch envelope
+    function playClick(){
+      if (!audioEnabled) return;
+      try {
+        const now = audioCtx.currentTime;
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(1200, now);
+        o.frequency.exponentialRampToValueAtTime(800, now + 0.03);
+        g.gain.setValueAtTime(0, now);
+        g.gain.linearRampToValueAtTime(0.12, now + 0.006);
+        g.gain.linearRampToValueAtTime(0.0001, now + 0.14);
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        o.start(now);
+        o.stop(now + 0.16);
+      } catch(e){/*ignore*/ }
+    }
 
-    /***********************
-     * CONFETTI (finale)
-     ***********************/
-    function launchConfettiSequence(){
-      const myConfetti = confetti.create(document.getElementById('confetti-canvas'), { resize: true, useWorker: true });
+    // Soft ambient pad loop (two detuned saws, slow tremolo)
+    const masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.05;
+    masterGain.connect(audioCtx.destination);
 
-      myConfetti({ particleCount: 40, angle: 60, spread: 48, origin: { x: 0.02, y: 0.9 }, scalar: 1.2 });
-      myConfetti({ particleCount: 40, angle: 120, spread: 48, origin: { x: 0.98, y: 0.9 }, scalar: 1.2 });
+    // create pad only when not muted and once user interacts for auto-play policies
+    let padNodes = null;
+    function startPad(){
+      if (padNodes || !audioEnabled) return;
+      const now = audioCtx.currentTime;
+      // two oscillators detuned
+      const o1 = audioCtx.createOscillator();
+      const o2 = audioCtx.createOscillator();
+      o1.type='sine'; o2.type='sine';
+      o1.frequency.value = 220; // A3
+      o2.frequency.value = 277.18; // C#4 detune
+      const g1 = audioCtx.createGain(); g1.gain.value = 0.25;
+      const g2 = audioCtx.createGain(); g2.gain.value = 0.18;
 
-      setTimeout(()=> myConfetti({ particleCount: 36, angle: 90, spread: 100, origin: {x:0.5, y:0.9}}), 220);
-      setTimeout(()=> myConfetti({ particleCount: 48, angle: 80, spread: 140, origin: {x:0.3, y:0.9}}), 340);
-      setTimeout(()=> myConfetti({ particleCount: 48, angle: 100, spread: 140, origin: {x:0.7, y:0.9}}), 360);
+      // lowpass
+      const lp = audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 900;
+      // slow tremolo
+      const lfo = audioCtx.createOscillator(); lfo.type='sine'; lfo.frequency.value = 0.06;
+      const lfoGain = audioCtx.createGain(); lfoGain.gain.value = 0.6;
 
-      const duration = 5000;
-      const end = Date.now() + duration;
-      (function frame(){
-        myConfetti({ particleCount: 6, angle: 90, spread: 80, origin: { x: Math.random(), y: 0.0 }, shapes: ['square','circle'], scalar: 0.9 + Math.random() * 0.6 });
-        if (Math.random() < 0.12) {
-          myConfetti({ particleCount: 8, angle: 90 + (Math.random()*40-20), spread: 40, origin: { x: Math.random(), y: 0.0 }, scalar: 1.4 + Math.random() });
-        }
-        if (Date.now() < end) requestAnimationFrame(frame);
-      })();
-    }
+      o1.connect(g1); o2.connect(g2);
+      g1.connect(lp); g2.connect(lp);
+      lp.connect(masterGain);
 
-    /***********************
-     * THREE.JS Hearts (optimized mobile-friendly)
-     ***********************/
-    const threeContainer = document.getElementById('three-bg');
-    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.domElement.style.width = '100%';
-    renderer.domElement.style.height = '100%';
-    threeContainer.appendChild(renderer.domElement);
+      lfo.connect(lfoGain);
+      lfoGain.connect(g1.gain);
+      lfoGain.connect(g2.gain);
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(40, window.innerWidth/window.innerHeight, 0.1, 2000);
-    camera.position.set(0,0,60);
+      // start
+      o1.start(now); o2.start(now); lfo.start(now);
+      // gentle fade-in
+      masterGain.gain.setValueAtTime(0.0001, now);
+      masterGain.gain.linearRampToValueAtTime(0.05, now + 2.0);
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambient);
-    const dir = new THREE.DirectionalLight(0xffffff, 0.6); dir.position.set(50,50,100); scene.add(dir);
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x111114, 0.09); scene.add(hemi);
+      padNodes = {o1,o2,lfo,g1,g2,lp};
+    }
 
-    function createHeartShape(scale=1){
-      const heart = new THREE.Shape();
-      const x=0,y=0;
-      heart.moveTo(x, y + 8 * scale);
-      heart.bezierCurveTo(x + 8 * scale, y + 20 * scale, x + 34 * scale, y + 20 * scale, x + 34 * scale, y + 8 * scale);
-      heart.bezierCurveTo(x + 34 * scale, y - 6 * scale, x + 16 * scale, y - 6 * scale, x + 12 * scale, y + 6 * scale);
-      heart.bezierCurveTo(x + 8 * scale, y - 6 * scale, x - 14 * scale, y - 6 * scale, x - 14 * scale, y + 6 * scale);
-      heart.bezierCurveTo(x - 18 * scale, y - 6 * scale, x - 34 * scale, y - 6 * scale, x - 34 * scale, y + 8 * scale);
-      heart.bezierCurveTo(x - 34 * scale, y + 20 * scale, x - 8 * scale, y + 20 * scale, x, y + 8 * scale);
-      return heart;
-    }
-    function createHeartMaterial(hex){
-      return new THREE.MeshStandardMaterial({ color:hex, metalness:0.08, roughness:0.28, emissive: new THREE.Color(hex).multiplyScalar(0.05), side:THREE.DoubleSide });
-    }
+    function stopPad(){
+      if (!padNodes) return;
+      const now = audioCtx.currentTime;
+      masterGain.gain.cancelScheduledValues(now);
+      masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+      masterGain.gain.linearRampToValueAtTime(0.0001, now + 1.4);
+      // stop oscillators after fade
+      setTimeout(()=>{
+        try { padNodes.o1.stop(); padNodes.o2.stop(); padNodes.lfo.stop(); } catch(e){}
+        padNodes = null;
+      },1600);
+    }
 
-    const heartsGroup = new THREE.Group(); scene.add(heartsGroup);
-    const heartMeshes = [];
-    // adjust heart count for mobile
-    const isMobile = window.matchMedia("(max-width:900px)").matches;
-    const numHearts = isMobile ? 12 : 22;
-    const colors = ['#ff7aa2','#ff4f7a','#ff9cb1','#ff2b6f','#ff6b98'];
+    // Start pad on first user interaction (to comply with autoplay)
+    document.addEventListener('click', function firstStart(){
+      startPad();
+      document.removeEventListener('click', firstStart);
+    });
 
-    for(let i=0;i<numHearts;i++){
-      const shape = createHeartShape(0.8);
-      const extrudeSettings = { depth: 2 + Math.random()*3, bevelEnabled:true, bevelThickness:0.8, bevelSize:0.8, bevelSegments:4 };
-      const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-      geom.computeBoundingBox(); geom.center();
-      const mat = createHeartMaterial(colors[Math.floor(Math.random()*colors.length)]);
-      const mesh = new THREE.Mesh(geom, mat);
-      mesh.position.x = (Math.random()-0.5) * 120;
-      mesh.position.y = (Math.random()-0.5) * 80;
-      mesh.position.z = -20 + Math.random() * 80;
-      const scale = (Math.random()*0.7)+0.6;
-      mesh.scale.setScalar(scale * (0.6 + Math.random()*0.8));
-      mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI * 0.2);
-      mesh.userData = { baseY: mesh.position.y, speed: 0.2 + Math.random()*0.7, sway: 0.2 + Math.random()*0.9, rotSpeed: (Math.random()-0.5)*0.002 };
-      heartsGroup.add(mesh); heartMeshes.push(mesh);
-    }
+    /*****************************************
+     * Three.js: floating hearts
+     *****************************************/
+    const canvas = document.getElementById('three-bg');
+    const renderer = new THREE.WebGLRenderer({canvas:canvas, alpha:true, antialias:true});
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 5000);
+    camera.position.set(0,0,120);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.outputEncoding = THREE.sRGBEncoding;
 
-    window.addEventListener('resize', onResize);
-    function onResize(){ renderer.setSize(window.innerWidth, window.innerHeight); camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); }
+    // lights
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x220022, 0.65);
+    scene.add(hemi);
+    const dir = new THREE.DirectionalLight(0xffd1e7, 0.85);
+    dir.position.set(0.6, 1, 0.8);
+    scene.add(dir);
 
-    let swirlOut=false, swirlStart=null;
-    function animate(t){
-      const time = t * 0.001;
-      heartMeshes.forEach((m,i)=>{
-        const ud = m.userData;
-        const sway = Math.sin(time * ud.speed + i) * ud.sway * 4.5;
-        m.position.x += Math.sin(time * ud.speed * 0.8 + i) * 0.02;
-        m.position.y = ud.baseY + sway;
-        m.rotation.x += ud.rotSpeed * 6;
-        m.rotation.y += ud.rotSpeed * 3;
-      });
+    // heart shape function
+    function createHeartShape(scale=1){
+      const x = 0, y = 0;
+      const heart = new THREE.Shape();
+      heart.moveTo(x, y + 5*scale);
+      heart.bezierCurveTo(x, y+5*scale, x-5*scale, y+2*scale, x-5*scale, y-2*scale);
+      heart.bezierCurveTo(x-5*scale, y-7*scale, x, y-10*scale, x, y-14*scale);
+      heart.bezierCurveTo(x, y-10*scale, x+5*scale, y-7*scale, x+5*scale, y-2*scale);
+      heart.bezierCurveTo(x+5*scale, y+2*scale, x, y+5*scale, x, y+5*scale);
+      return heart;
+    }
 
-      if(swirlOut){
-        if(!swirlStart) swirlStart = time;
-        const progress = Math.min((time - swirlStart) / 3.0, 1.0);
-        heartMeshes.forEach((m,i)=>{
-          const dirX = (m.position.x) >= 0 ? 1 : -1;
-          m.position.x += dirX * 0.6 * (1 + progress*2);
-          m.position.y += 0.8 + Math.sin(time + i) * 0.6 + progress*3;
-          m.position.z += 0.6 + progress*2;
-          m.material.opacity = Math.max(0, 1 - progress);
-          m.material.transparent = true;
-        });
-        ambient.intensity = Math.max(0.2, 0.6 * (1 - progress));
-      }
-      renderer.render(scene, camera);
-      requestAnimationFrame(animate);
-    }
-    requestAnimationFrame(animate);
-    function heartsSwirlOut(){ swirlOut = true; gsap.to(camera.position, {duration:2.2, z:95, ease:'power2.out'}); }
+    // create a set of hearts
+    const heartGroup = new THREE.Group();
+    scene.add(heartGroup);
+    const heartCount = 22;
+    const hearts = [];
+    for(let i=0;i<heartCount;i++){
+      const scale = THREE.MathUtils.randFloat(0.6, 2.6);
+      const shape = createHeartShape(1.6 * scale);
+      const extrudeSettings = { depth: 2 + Math.random()*6, bevelEnabled:true, bevelThickness:0.8, bevelSize:0.6, bevelSegments:2 };
+      const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      geom.computeVertexNormals();
+      const hue = THREE.MathUtils.randFloat(330,350);
+      const mat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(`hsl(${hue} 80% ${THREE.MathUtils.randFloat(45,60)}%)`),
+        metalness: 0.18,
+        roughness: 0.42,
+        emissive: new THREE.Color(`hsl(${hue} 60% ${THREE.MathUtils.randFloat(3,8)}%)`),
+        emissiveIntensity: 0.05,
+        flatShading:false
+      });
+      const mesh = new THREE.Mesh(geom, mat);
+      mesh.castShadow = false;
+      mesh.receiveShadow = false;
+      mesh.position.set(THREE.MathUtils.randFloatSpread(240), THREE.MathUtils.randFloatSpread(140), THREE.MathUtils.randFloat(-40, 60));
+      mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+      mesh.scale.setScalar(THREE.MathUtils.randFloat(0.7, 1.8));
+      heartGroup.add(mesh);
+      hearts.push({
+        mesh,
+        baseY:mesh.position.y,
+        offset: Math.random()*Math.PI*2,
+        speed: THREE.MathUtils.randFloat(0.3,1.0),
+        swirlAngle: Math.random()*Math.PI*2
+      });
+    }
 
-    /***********************
-     * AUDIO: WebAudio-based lo-fi pad + clicks/chimes
-     ***********************/
-    const AudioManager = (function(){
-      let ctx = null, master=null, musicGain=null, isInit=false, isPlaying=false, ambientNodes=[], pulseInterval=null;
-      function safeTry(fn){ try{ fn(); } catch(e){ console.warn('Audio err', e); } }
-      function init(){
-        if(isInit) return;
-        try{ ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ console.warn('WebAudio not supported'); return; }
-        master = ctx.createGain(); master.gain.value = parseFloat(document.getElementById('volRange').value || 0.65); master.connect(ctx.destination);
-        musicGain = ctx.createGain(); musicGain.gain.value = 0; musicGain.connect(master);
-        // two detuned oscillators as warm pad
-        const oscA = ctx.createOscillator(); const oscB = ctx.createOscillator();
-        oscA.type='sine'; oscB.type='sine'; oscA.frequency.value = 110; oscB.frequency.value = 110 * 1.012;
-        const oscAGain = ctx.createGain(); oscAGain.gain.value=0.16; const oscBGain = ctx.createGain(); oscBGain.gain.value=0.12;
-        const lfo = ctx.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.055; const lfoGain = ctx.createGain(); lfoGain.gain.value=0.04;
-        const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 1200;
-        const detuneOsc = ctx.createOscillator(); detuneOsc.type='sine'; detuneOsc.frequency.value=0.08; const detuneGain = ctx.createGain(); detuneGain.gain.value=4;
-        oscA.connect(oscAGain); oscB.connect(oscBGain); oscAGain.connect(lp); oscBGain.connect(lp); lp.connect(musicGain);
-        lfo.connect(lfoGain); lfoGain.connect(oscAGain.gain); lfoGain.connect(oscBGain.gain);
-        detuneOsc.connect(detuneGain); detuneGain.connect(oscA.detune); detuneGain.connect(oscB.detune);
-        // noise texture
-        const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 3, ctx.sampleRate);
-        const data = noiseBuffer.getChannelData(0); for(let i=0;i<data.length;i++) data[i] = (Math.random()*2-1) * 0.25;
-        const nb = ctx.createBufferSource(); nb.buffer = noiseBuffer; nb.loop = true;
-        const noiseFilter = ctx.createBiquadFilter(); noiseFilter.type='lowpass'; noiseFilter.frequency.value = 900;
-        const noiseGain = ctx.createGain(); noiseGain.gain.value = 0.04;
-        nb.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(musicGain);
-        // percussive pulse oscillator
-        const pulseGain = ctx.createGain(); pulseGain.gain.value = 0;
-        const pulseOsc = ctx.createOscillator(); pulseOsc.type = 'triangle'; pulseOsc.frequency.value = 220;
-        pulseOsc.connect(pulseGain); pulseGain.connect(musicGain);
+    // resize handler
+    window.addEventListener('resize', ()=>{
+      camera.aspect = window.innerWidth/window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
 
-        safeTry(()=>{ oscA.start(); oscB.start(); lfo.start(); detuneOsc.start(); nb.start(); pulseOsc.start(); });
+    // animate hearts
+    let tStart = performance.now();
+    let finalTriggered = false;
+    function animate(){
+      const t = (performance.now()-tStart)/1000;
+      // subtle group drift and rotation
+      heartGroup.rotation.y = Math.sin(t*0.05) * 0.04;
+      heartGroup.position.x = Math.sin(t*0.12) * 6;
+      // per-heart float
+      hearts.forEach((h, idx)=>{
+        const m = h.mesh;
+        m.position.y = h.baseY + Math.sin(t*h.speed + h.offset) * (6 + idx%3);
+        m.rotation.x += 0.002 * (0.5 + h.speed*0.4);
+        m.rotation.y += 0.0015 * (0.8 + h.speed*0.6);
+      });
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+    animate();
 
-        ambientNodes.push({oscA, oscB, lfo, detuneOsc, nb, noiseGain, pulseGain, pulseOsc, lp});
-        isInit = true;
-      }
-      function resumeIfNeeded(){ if(!ctx) return Promise.resolve(); if(ctx.state === 'suspended') return ctx.resume().catch(()=>{}); return Promise.resolve(); }
-      function playBackground(){
-        if(!isInit) init();
-        if(!ctx) return;
-        return resumeIfNeeded().then(()=> {
-          isPlaying = true;
-          safeTry(()=> gsap.to(musicGain.gain, {value:0.55, duration:2.2, ease:'sine.inOut'}));
-          schedulePulse();
-        }).catch(()=>{});
-      }
-      function schedulePulse(){
-        if(pulseInterval) clearInterval(pulseInterval);
-        pulseInterval = setInterval(()=> {
-          if(!isPlaying) return;
-          const n = ambientNodes[0]; if(!n) return;
-          const g = n.pulseGain.gain;
-          try{ g.cancelScheduledValues(ctx.currentTime); g.setValueAtTime(0, ctx.currentTime); g.linearRampToValueAtTime(0.15, ctx.currentTime+0.03); g.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.1); }catch(e){}
-        }, 3600 + Math.random()*1800);
-      }
-      function stopBackground(){
-        if(!isInit) return;
-        try{ gsap.to(musicGain.gain, {value:0, duration:1.2, ease:'sine.inOut', onComplete:()=>{ isPlaying=false; if(pulseInterval) clearInterval(pulseInterval); } }); }catch(e){ isPlaying=false; if(pulseInterval) clearInterval(pulseInterval); }
-      }
-      function playClick(){
-        if(!isInit) init();
-        if(!ctx) return;
-        return resumeIfNeeded().then(()=> {
-          const now = ctx.currentTime;
-          const b = ctx.createBufferSource();
-          const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.06, ctx.sampleRate);
-          const d = buffer.getChannelData(0);
-          for(let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * Math.exp(-i/(d.length*0.4));
-          b.buffer = buffer;
-          const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value = 1700 + Math.random()*300;
-          const g = ctx.createGain(); g.gain.value = 0.4;
-          b.connect(bp); bp.connect(g); g.connect(master);
-          b.start(now);
-          g.gain.setValueAtTime(0.4, now);
-          g.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
-          setTimeout(()=>{ try{ b.disconnect(); bp.disconnect(); g.disconnect(); }catch(e){} }, 900);
-        }).catch(()=>{});
-      }
-      function playChime(){
-        if(!isInit) init();
-        if(!ctx) return;
-        return resumeIfNeeded().then(()=>{
-          const now = ctx.currentTime; const freqs=[880,1320,1760];
-          freqs.forEach((f,i)=>{
-            const o = ctx.createOscillator(); o.type='sine'; o.frequency.value=f;
-            const g = ctx.createGain(); g.gain.value=0;
-            const filter = ctx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value = 7200 - i*800;
-            o.connect(filter); filter.connect(g); g.connect(master);
-            o.start(now + i*0.02);
-            g.gain.setValueAtTime(0.0001, now);
-            g.gain.exponentialRampToValueAtTime(0.12/(i+1), now + 0.02 + i*0.01);
-            g.gain.exponentialRampToValueAtTime(0.0001, now + 1.6 + i*0.05);
-            o.stop(now + 2.0 + i*0.05);
-            setTimeout(()=>{ try{ o.disconnect(); g.disconnect(); filter.disconnect(); }catch(e){} }, 2600);
-          });
-        }).catch(()=>{});
-      }
-      function playCelebration(){
-        if(!isInit) init();
-        if(!ctx) return;
-        return resumeIfNeeded().then(()=>{
-          const now = ctx.currentTime; const base=[1320,1100,880,660];
-          base.forEach((f, idx)=>{ for(let j=0;j<3;j++){
-            const o = ctx.createOscillator(); o.type='sine'; o.frequency.value = f * (1 + (Math.random()-0.5)*0.02);
-            const g = ctx.createGain(); g.gain.value=0;
-            const filter = ctx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=7200;
-            o.connect(filter); filter.connect(g); g.connect(master);
-            const start = now + idx*0.12 + j*0.03; o.start(start);
-            g.gain.setValueAtTime(0.0001,start); g.gain.exponentialRampToValueAtTime(0.18/(j+1), start+0.02); g.gain.exponentialRampToValueAtTime(0.0001, start + 1.2 + Math.random()*0.8);
-            o.stop(start + 2.4 + Math.random()*0.7);
-          }});
-          setTimeout(()=> playChime(), 160); setTimeout(()=> playChime(), 420);
-        }).catch(()=>{});
-      }
-      function setVolume(v){ if(master && ctx) safeTry(()=> master.gain.setValueAtTime(v, ctx.currentTime)); }
-      function toggle(){ if(isPlaying){ stopBackground(); return false; } else { playBackground(); return true; } }
-      return { init, playBackground, stopBackground, playClick, playChime, playCelebration, setVolume, toggle };
-    })();
+    /*****************************************
+     * Finale: confetti + hearts swirl out
+     *****************************************/
+    const celebrateBtn = document.getElementById('celebrateBtn');
+    const finalMessageNode = document.getElementById('finalMessage');
 
-    // Start audio on first CTA click/gesture
-    let audioStarted = false;
-    function startAudioIfNeeded(){
-      if(audioStarted) return;
-      audioStarted = true;
-      AudioManager.init();
-      AudioManager.setVolume(parseFloat(document.getElementById('volRange').value || 0.65));
-      AudioManager.playBackground();
-      document.getElementById('audioBtn').textContent = '🔊';
-    }
+    celebrateBtn.addEventListener('click', async function(){
+      playClick();
+      // disable button
+      celebrateBtn.setAttribute('disabled','');
+      gsap.to(celebrateBtn, {duration:.5, opacity:0, scale:.96, ease:'power2.out'});
 
-    // wire btn clicks to click sound (all .btn)
-    document.querySelectorAll('.btn').forEach(b => {
-      b.addEventListener('click', ()=> {
-        startAudioIfNeeded();
-        AudioManager.playClick();
-      });
-    });
+      // show final text
+      await new Promise(r => setTimeout(r, 350));
+      finalMessageNode.innerHTML = `<h2 style="font-family:Playfair Display, serif; margin:0; color:transparent; background-clip:text; -webkit-background-clip:text; background-image: linear-gradient(90deg,#ffd5ea,#ffecf5);">Happy Birthday, my crush! ❤️</h2>`;
 
-    // audio UI wiring
-    const audioBtn = document.getElementById('audioBtn');
-    audioBtn.addEventListener('click', async ()=>{
-      AudioManager.init();
-      await AudioManager.playClick();
-      const on = AudioManager.toggle();
-      audioBtn.textContent = on ? '🔊' : '🔈';
-    });
-    document.getElementById('volRange').addEventListener('input', e=> {
-      AudioManager.setVolume(parseFloat(e.target.value));
-    });
+      // animate text in
+      gsap.fromTo(finalMessageNode, {y:24, opacity:0}, {y:0, opacity:1, duration:.9, ease:'power3.out'});
 
-    // Ensure touchstart initializes audio context for iOS
-    document.addEventListener('touchstart', function firstTouch(){ AudioManager.init(); document.removeEventListener('touchstart', firstTouch); }, {passive:true});
-    document.addEventListener('click', function firstClick(){ AudioManager.init(); document.removeEventListener('click', firstClick); });
+      // powerful corner bursts then gentle shower with emoji and hearts
+      const duration = 5 * 1000;
+      // explosions from bottom corners
+      confetti({
+        particleCount: 60,
+        startVelocity: 40,
+        spread:120,
+        origin: { x: 0.03, y: 0.9 },
+        ticks: 180,
+      });
+      confetti({
+        particleCount: 60,
+        startVelocity: 42,
+        spread:120,
+        origin: { x: 0.97, y: 0.9 },
+        ticks: 180,
+      });
 
-    /***********************
-     * Final celebration wiring
-     ***********************/
-    const celebrateBtn = document.getElementById('celebrateBtn');
-    const finalWish = document.getElementById('finalWish');
-    celebrateBtn.addEventListener('click', ()=>{
-      startAudioIfNeeded();
-      AudioManager.playClick();
-      celebrateBtn.disabled = true;
-      gsap.to(celebrateBtn, {duration:0.4, opacity:0, scale:0.94, pointerEvents:'none', ease:'power2.inOut'});
-      gsap.to(finalWish, {duration:0.9, opacity:1, y:0, ease:'power3.out', delay:0.35});
-      AudioManager.playCelebration();
-      launchConfettiSequence();
-      heartsSwirlOut();
-      gsap.to('.aurora', {duration:1.2, filter:'blur(28px) contrast(1.09) saturate(1.18)', ease:'power1.inOut', yoyo:true, repeat:1});
-    });
+      // continuous gentle multi-type shower
+      const end = Date.now() + duration;
+      (function frame(){
+        confetti({
+          particleCount: 18,
+          startVelocity: 8,
+          spread: 50,
+          origin: { x: Math.random(), y: Math.random() * 0.6 },
+          shapes: ['square','circle'],
+          scalar: Math.random() * 0.6 + 0.6,
+        });
+        // emoji confetti: use tiny text-based particles by drawing images — canvas-confetti supports images via particleFunction in advanced usage,
+        // but to keep single-file simple we'll emit a few stars/hearts as text-shaped via the 'shape' param isn't supported; instead, we sprinkle more colorful pieces.
+        if (Date.now() < end) {
+          setTimeout(frame, 300 + Math.random()*220);
+        }
+      })();
 
-    /***********************
-     * Initial page micro-animations & Navigation Fix
-     ***********************/
-    gsap.from('body', {duration:1.0, opacity:0, ease:'power2.out'});
-    gsap.to('#steps-root', {duration:8, y:-6, repeat:-1, yoyo:true, ease:'sine.inOut'});
+      // Hearts final swirl: animate hearts to swirl out & float up then fade
+      finalTriggered = true;
+      hearts.forEach((h, i) => {
+        const m = h.mesh;
+        const delay = i * 0.04;
+        const dir = (i%2===0)?1:-1;
+        gsap.to(m.position, {
+          duration: 3.2,
+          delay,
+          x: m.position.x + dir * THREE.MathUtils.randFloat(60,140),
+          y: m.position.y + THREE.MathUtils.randFloat(120, 240),
+          z: m.position.z + THREE.MathUtils.randFloat(40, 180),
+          ease: "power2.inOut"
+        });
+        gsap.to(m.rotation, {duration:3.4, delay, x: m.rotation.x + Math.PI*dir, y: m.rotation.y + Math.PI*dir, ease:'power2.inOut'});
+        // fade material by reducing emissive and roughness (simulate fade)
+        gsap.to(m.material, {duration:3.2, delay, opacity:0, onUpdate:function(){
+          m.material.transparent = true;
+        }});
+        // eventually remove mesh to keep renderer light
+        setTimeout(()=>{ try{ heartGroup.remove(m); }catch(e){} }, 4200 + delay*1000);
+      });
 
-    // FIX: Animate Step 1 into view after page load, instead of re-running showStep(0)
-    const initialStep = document.getElementById('step-1');
-    gsap.from(initialStep, {duration:0.6, opacity:0, y:18, scale:0.99, ease:'power3.out', delay:0.2});
+      // gentle celebratory melody (tiny arpeggio)
+      if (audioEnabled){
+        playClick();
+        const now = audioCtx.currentTime;
+        const notes = [392, 523.25, 659.25, 783.99]; // G4, C5, E5, G5
+        let idx = 0;
+        const gMaster = audioCtx.createGain(); gMaster.gain.value = 0.08; gMaster.connect(audioCtx.destination);
+        function playNote(){
+          if (idx >= notes.length) return;
+          const o = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          o.type='triangle';
+          o.frequency.value = notes[idx];
+          gain.gain.setValueAtTime(0.0001, now + idx*0.18);
+          gain.gain.linearRampToValueAtTime(0.1, now + idx*0.18 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + idx*0.18 + 0.9);
+          o.connect(gain); gain.connect(gMaster);
+          o.start(now + idx*0.18);
+          o.stop(now + idx*0.18 + 1.1);
+          idx++;
+          if (idx < notes.length) setTimeout(playNote, 180);
+        }
+        playNote();
+      }
+    });
 
-    /***********************
-     * Ensure step positioning safety & Navigation
-     ***********************/
-    function safeShowStep(index){
-      showStep(index);
-      // fallback: if the newly activated element is out of view, scroll top (shouldn't happen but safety)
-      setTimeout(()=>{
-        const active = document.querySelector('.card.step.active');
-        if(active){
-          const rect = active.getBoundingClientRect();
-          if(rect.top > window.innerHeight || rect.bottom < 0){
-            try{ window.scrollTo({ top: 0, behavior: 'smooth' }); }catch(e){}
-          }
-        }
-      }, 300);
-    }
+    /*****************************************
+     * Accessibility: keyboard navigation for steps (Left/Right)
+     *****************************************/
+    window.addEventListener('keydown', (e)=>{
+      if (e.key === 'ArrowRight' || e.key === 'Enter') {
+        playClick();
+        gotoStep(Math.min(current+1, total-1));
+      } else if (e.key === 'ArrowLeft') {
+        playClick();
+        gotoStep(Math.max(current-1, 0));
+      }
+    });
 
-    // Wire navigation buttons using the safe function
-    document.querySelectorAll('[data-next]').forEach(btn=>{
-      btn.addEventListener('click', (ev)=>{
-        ev.preventDefault();
-        startAudioIfNeeded();
-        AudioManager.playClick();
-        setTimeout(()=> AudioManager.playChime(), 120);
-        safeShowStep(Math.min(currentStep + 1, totalSteps - 1));
-      });
-    });
+    /*****************************************
+     * Extra polish: subtle entrance animation on load
+     *****************************************/
+    window.addEventListener('load', ()=>{
+      steps.forEach((s, i) => {
+        if (i === 0) {
+          gsap.fromTo(s, {opacity:0, y:18, scale:1.02}, {opacity:1, y:0, scale:1, duration:1.1, ease:'expo.out', delay:0.2});
+        } else {
+          s.classList.add('hidden');
+        }
+      });
+      // Slightly nudge the aurora for dramatic effect
+      gsap.to('.aurora', {duration:4, scale:1.01, y:-6, repeat:-1, yoyo:true, ease:'sine.inOut'});
+    });
 
-    // Accessibility: roles, keyboard nav
-    window.addEventListener('keydown', (e)=>{
-      if(e.key === 'ArrowRight') safeShowStep(Math.min(currentStep + 1, totalSteps - 1));
-      if(e.key === 'ArrowLeft') safeShowStep(Math.max(currentStep - 1, 0));
-    });
+    // Make sure audio context resumes on user gesture (some browsers block otherwise)
+    document.addEventListener('pointerdown', async () => {
+      if (audioCtx.state === 'suspended') try{ await audioCtx.resume(); } catch(e){}
+    }, {once:true});
 
-    /***********************
-     * Small accessibility / performance tweaks
-     ***********************/
-    // reduce heavy blur on low-end devices
-    try {
-      const isLowPower = navigator.deviceMemory && navigator.deviceMemory < 2;
-      if(isLowPower) document.querySelector('.aurora').style.filter = 'blur(24px) contrast(1.01)';
-    } catch(e){}
-
-  </script>
+  </script>
 </body>
 </html>
