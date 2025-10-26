@@ -1,771 +1,672 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Happy Birthday — A Little World For You</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Special Day Just For You</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
 
-  <!-- Tailwind (CDN) -->
-  <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Global Styles & Aurora Background */
+        :root {
+            --bg-color: #0c0a09;
+            --card-color: rgba(12, 10, 9, 0.75);
+            --pink-start: #f87171; /* A nice vibrant pink */
+            --pink-end: #dc2626; /* A deep red */
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
 
-  <!-- Three.js (r150) -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/examples/js/controls/OrbitControls.js"></script>
+        body {
+            background-color: var(--bg-color);
+            color: #e5e5e5;
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-family: 'Montserrat', sans-serif;
+            position: relative;
+        }
 
-  <!-- GSAP -->
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+        /* Aurora Gradient Animation Layer 1 */
+        .aurora-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -2;
+            background: radial-gradient(circle at 10% 20%, hsla(333,70%,55%,.4) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 90%, hsla(282, 82%, 54%, .3) 0%, transparent 50%),
+                        radial-gradient(circle at 50% 50%, hsla(210, 89%, 60%, .3) 0%, transparent 50%),
+                        radial-gradient(circle at 20% 80%, hsla(35, 90%, 60%, .3) 0%, transparent 50%);
+            background-size: 400% 400%;
+            animation: aurora-flow 60s ease-in-out infinite alternate;
+        }
 
-  <!-- canvas-confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+        @keyframes aurora-flow {
+            0% { background-position: 0% 50%, 100% 50%, 50% 100%, 0% 0%; }
+            25% { background-position: 25% 75%, 75% 25%, 50% 50%, 0% 100%; }
+            50% { background-position: 100% 50%, 0% 50%, 50% 0%, 100% 100%; }
+            75% { background-position: 75% 25%, 25% 75%, 50% 50%, 100% 0%; }
+            100% { background-position: 0% 50%, 100% 50%, 50% 100%, 0% 0%; }
+        }
 
-  <!-- Fonts: Playfair Display & Satoshi (Fontshare) -->
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet">
-  <!-- Fontshare API for Satoshi -->
-  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi:400,600&display=swap">
+        /* Three.js Canvas Layer 2 (for 3D Hearts) */
+        #three-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
 
-  <style>
-    :root{
-      --bg:#0c0a09;
-      --glass-bg: rgba(255,255,255,0.03);
-      --glass-border: rgba(255,255,255,0.06);
-      --muted:#cfcfd3;
-      --accent-start:#ff5fa8;
-      --accent-end:#ff2e50;
-      --card-radius:18px;
-    }
+        /* Typography - Playfair Display for Headings */
+        .title-font {
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-size: 3rem; /* Default size for large desktop */
+        }
 
-    html,body,#app{
-      height:100%;
-      margin:0;
-      font-family: "Satoshi", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background:var(--bg);
-      color:var(--muted);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      overflow:hidden;
-    }
+        /* Gradient Text Effect for Headings */
+        .gradient-text {
+            background: linear-gradient(45deg, #fce7f3, #fff, #fbcfe8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+        }
 
-    /* Aurora layer (breathing radial gradients) */
-    .aurora {
-      position:fixed;
-      inset:0;
-      z-index:0;
-      background: radial-gradient(400px at 10% 20%, hsla(333,70%,55%,.28), transparent 20%),
-                  radial-gradient(420px at 80% 30%, hsla(282,82%,54%,.22), transparent 18%),
-                  radial-gradient(520px at 60% 80%, hsla(210,89%,60%,.20), transparent 18%),
-                  radial-gradient(620px at 30% 70%, hsla(35,90%,60%,.17), transparent 20%),
-                  var(--bg);
-      filter: blur(40px) saturate(1.05);
-      animation: breathe 18s linear infinite;
-      mix-blend-mode: screen;
-      pointer-events:none;
-    }
-    @keyframes breathe{
-      0%{ transform: translateY(0) scale(1) rotate(0deg); filter: blur(36px) saturate(1); opacity:1; }
-      50%{ transform: translateY(-12px) scale(1.03) rotate(0.3deg); filter: blur(42px) saturate(1.1); opacity:0.95; }
-      100%{ transform: translateY(0) scale(1) rotate(0deg); filter: blur(36px) saturate(1); opacity:1; }
-    }
+        /* Glassmorphism Card Style */
+        .glass-card {
+            background-color: var(--card-color);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            padding: 2.5rem;
+            max-width: 500px; /* Max width for single cards */
+        }
 
-    /* Canvas Three.js container */
-    #three-bg {
-      position:fixed;
-      inset:0;
-      z-index:0;
-      pointer-events:none;
-    }
+        /* Button Styling */
+        .pill-button {
+            background: linear-gradient(90deg, var(--pink-start), var(--pink-end));
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 0 15px rgba(252, 165, 165, 0.5); /* Soft pink glow */
+            border: none;
+            cursor: pointer;
+        }
 
-    /* Glass card styles */
-    .card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      backdrop-filter: blur(10px) saturate(1.1);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--card-radius);
-      box-shadow: 0 10px 30px rgba(2,3,7,0.6);
-      padding:28px;
-      max-width:880px;
-      margin:18px auto;
-      color:var(--muted);
-    }
+        .pill-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 0 25px rgba(252, 165, 165, 0.8), 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
 
-    h1, h2 {
-      font-family: "Playfair Display", serif;
-      margin:0 0 8px 0;
-      line-height:1.05;
-      letter-spacing:-0.02em;
-      font-weight:700;
-      color:transparent;
-      -webkit-background-clip:text;
-      background-clip:text;
-      background-image: linear-gradient(90deg, #ffb6d8 0%, #ffdce6 35%, #fff 70%);
-      text-shadow: 0 4px 18px rgba(0,0,0,0.6);
-    }
+        .pill-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 0 10px rgba(252, 165, 165, 0.3);
+        }
 
-    p { margin:10px 0 18px 0; color: #dcdbe0; font-size:1rem; }
+        /* Progress Bar Styling */
+        .progress-track {
+            background-color: var(--card-color);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border);
+            height: 8px;
+            width: 300px;
+            border-radius: 4px;
+        }
 
-    /* Buttons */
-    .btn {
-      display:inline-flex;
-      gap:10px;
-      align-items:center;
-      padding:12px 20px;
-      cursor:pointer;
-      border-radius:999px;
-      border: none;
-      font-weight:600;
-      font-family:"Satoshi", system-ui, sans-serif;
-      transform-origin:center;
-      box-shadow: 0 6px 24px rgba(255,46,80,0.12);
-      background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
-      color:white;
-      transition: transform .18s ease, box-shadow .18s ease;
-      user-select:none;
-    }
-    .btn:hover {
-      transform: translateY(-6px) scale(1.05);
-      box-shadow: 0 16px 40px rgba(255,46,80,0.22);
-    }
-    .btn:active {
-      transform: translateY(-2px) scale(.99);
-    }
-    .btn[disabled]{
-      opacity:.5;
-      pointer-events:none;
-      transform:none;
-      box-shadow:none;
-    }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #fbcfe8, var(--pink-end));
+            border-radius: 4px;
+            width: 0%; /* Controlled by JS */
+        }
 
-    /* Progress bar at top-center */
-    .progress-wrap {
-      position:fixed;
-      top:18px;
-      left:50%;
-      transform:translateX(-50%);
-      width: min(720px, 90%);
-      z-index:60;
-      pointer-events:none;
-      display:flex;
-      justify-content:center;
-    }
-    .progress-track {
-      width:100%;
-      height:8px;
-      border-radius:999px;
-      background: rgba(255,255,255,0.04);
-      border:1px solid rgba(255,255,255,0.03);
-      padding:2px;
-      backdrop-filter: blur(6px);
-    }
-    .progress-bar {
-      height:100%;
-      width:0%;
-      border-radius:999px;
-      background: linear-gradient(90deg,var(--accent-start),var(--accent-end));
-      box-shadow: 0 6px 18px rgba(255,46,80,0.12), inset 0 0 20px rgba(255,255,255,0.02);
-      transition: width .7s cubic-bezier(.2,.9,.2,1);
-    }
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .title-font {
+                font-size: 2.25rem;
+            }
+            .glass-card {
+                padding: 1.5rem;
+                margin: 0 1rem;
+            }
+            .progress-track {
+                width: 80%;
+                max-width: 250px;
+            }
+        }
 
-    /* Layout */
-    .stage {
-      position:relative;
-      z-index:50;
-      height:100%;
-      width:100%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding: 32px;
-      box-sizing:border-box;
-      overflow:auto;
-    }
+        /* Step-specific styling for absolute positioning */
+        .step-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-    .step-container {
-      width:100%;
-      max-width:980px;
-      margin:auto;
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:18px;
-      align-items:center;
-    }
+        /* Bento Grid Styling (Step 3) */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            width: 100%;
+        }
 
-    .center {
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      flex-direction:column;
-      text-align:center;
-    }
+        .bento-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            transition: transform 0.3s ease;
+            min-height: 120px;
+        }
 
-    .icon-large {
-      font-size:84px;
-      filter: drop-shadow(0 8px 34px rgba(255,95,168,0.18));
-      transform-origin:center;
-      margin-bottom:6px;
-    }
-    .heart-beat{
-      animation: beat 1.8s ease-in-out infinite;
-    }
-    @keyframes beat{
-      0%{ transform:scale(1); opacity:0.95; filter: drop-shadow(0 4px 18px rgba(255,95,168,0.12)); }
-      50%{ transform:scale(1.08); opacity:1; filter: drop-shadow(0 12px 36px rgba(255,95,168,0.22)); }
-      100%{ transform:scale(1); opacity:0.95; }
-    }
+        .bento-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
 
-    /* Bento grid for step 3 */
-    .bento {
-      display:grid;
-      grid-template-columns: repeat(4, 1fr);
-      grid-auto-rows: 140px;
-      gap:12px;
-    }
-    .bento-card{
-      background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
-      border-radius:14px;
-      padding:14px;
-      border:1px solid rgba(255,255,255,0.03);
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-    }
-    .bento-card.large { grid-column: span 2; grid-row: span 1; }
-    .bento-title { font-weight:700; font-family: "Playfair Display", serif; margin-bottom:6px; color:transparent; background-clip:text; -webkit-background-clip:text; background-image: linear-gradient(90deg,#ffd5ea,#ffecf5); }
-    .bento-text { font-size:.95rem; color:#e7e6ea; }
-
-    /* Polaroid */
-    .polaroid {
-      width:320px;
-      max-width:84vw;
-      background:linear-gradient(180deg,#fff,#f7f7f7);
-      padding:12px 12px 18px 12px;
-      border-radius:12px;
-      box-shadow: 0 18px 48px rgba(2,3,7,0.55);
-      transform-style:preserve-3d;
-      transition: transform .18s ease;
-      cursor:grab;
-      border: 1px solid rgba(0,0,0,0.06);
-      perspective:1000px;
-    }
-    .polaroid img {
-      width:100%;
-      display:block;
-      border-radius:8px;
-    }
-    .polaroid .caption {
-      margin-top:10px;
-      font-weight:600;
-      color:#333;
-      text-align:left;
-      font-family:"Satoshi",sans-serif;
-      font-size:.95rem;
-    }
-
-    /* Footer controls: mute */
-    .controls {
-      position:fixed;
-      right:18px;
-      bottom:18px;
-      z-index:80;
-      display:flex;
-      gap:12px;
-      align-items:center;
-    }
-    .mute-toggle {
-      background: rgba(255,255,255,0.03);
-      border:1px solid rgba(255,255,255,0.04);
-      padding:10px;
-      border-radius:12px;
-      color:var(--muted);
-      cursor:pointer;
-      backdrop-filter: blur(6px);
-      display:inline-flex;
-      gap:8px;
-      align-items:center;
-      font-weight:600;
-    }
-
-    /* Responsive tweaks */
-    @media (max-width:900px){
-      h1{ font-size:26px; }
-      .icon-large { font-size:64px; }
-      .bento { grid-template-columns: repeat(2, 1fr); grid-auto-rows:120px;}
-      .bento-card.large { grid-column: span 2; }
-    }
-    @media (max-width:520px){
-      .card { padding:18px; border-radius:14px; margin:12px; }
-      .progress-wrap{ top:12px; }
-      .polaroid { width:86vw; }
-    }
-
-  </style>
+        .bento-span-2 {
+            grid-column: span 2 / span 2;
+        }
+    </style>
 </head>
-<body>
-  <div class="aurora" aria-hidden="true"></div>
-  <canvas id="three-bg"></canvas>
 
-  <!-- Progress -->
-  <div class="progress-wrap" aria-hidden="true">
-    <div class="progress-track">
-      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+<body class="antialiased">
+    <div class="aurora-bg"></div>
+    <div id="three-container"></div>
+
+    <div class="fixed top-5 left-1/2 -translate-x-1/2 z-50">
+        <div class="progress-track">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
     </div>
-  </div>
 
-  <div id="app" class="stage">
-    <!-- Steps stack -->
-    <div id="steps" class="step-container w-full">
+    <main id="content-area" class="relative w-full h-screen flex justify-center items-center p-4">
 
-      <!-- Step 1 -->
-      <div class="card center step" data-step="1" style="opacity:1;">
-        <div class="icon-large heart-beat" id="welcomeIcon">❤️</div>
-        <h1>Hey Beautiful,</h1>
-        <p>I built a little world for you, just to bring a smile to your face on your special day.</p>
-        <div style="display:flex;gap:12px;justify-content:center">
-          <button class="btn" data-next>Let's Begin</button>
+        <div id="step-1" class="step-container">
+            <div class="glass-card text-center max-w-sm">
+                <div class="text-6xl mb-4" id="heart-icon">❤️</div>
+                <h1 class="title-font gradient-text mb-4 text-4xl">Hey Beautiful,</h1>
+                <p class="text-gray-300 mb-6">I know by the time of we may not talk to each others im really sorry prajju, hope this year brings new joy to you , so I tried built a little world for you, just to bring a smile to your face on your special day.</p>
+                <button class="pill-button step-button" data-next="2">Let's Begin</button>
+            </div>
         </div>
-      </div>
 
-      <!-- Step 2 -->
-      <div class="card center step hidden" data-step="2" style="opacity:0;">
-        <div class="icon-large" id="partyIcon">🎉</div>
-        <h1>Happy Birthday!</h1>
-        <p>Another year of you making the world brighter. Your existence is a gift, and I'm so lucky to witness it.</p>
-        <div style="display:flex;gap:12px;justify-content:center">
-          <button class="btn" data-next>There's more...</button>
+        <div id="step-2" class="step-container hidden">
+            <div class="glass-card text-center max-w-sm">
+                <div class="text-6xl mb-4">🎉</div>
+                <h2 class="title-font gradient-text mb-4 text-4xl">Happy Birthday!</h2>
+                <p class="text-gray-300 mb-6">Another year of you making the world brighter. Your existence is a gift, and I'm so lucky to witness it.</p>
+                <button class="pill-button step-button" data-next="3">There's more...</button>
+            </div>
         </div>
-      </div>
 
-      <!-- Step 3 -->
-      <div class="card step hidden" data-step="3" style="opacity:0;">
-        <h2>A Few Things I Adore About You</h2>
-        <div class="bento" style="margin-top:12px;">
-          <div class="bento-card large">
-            <div class="bento-title">✨ Your Unmatched Kindness</div>
-            <div class="bento-text">The genuine warmth you show to everyone is something truly rare and beautiful.</div>
-          </div>
-          <div class="bento-card">
-            <div class="bento-title">😊 That Smile</div>
-            <div class="bento-text">It's a work of art.</div>
-          </div>
-          <div class="bento-card large">
-            <div class="bento-title">🌟 Your Radiant Spirit</div>
-            <div class="bento-text">Your passion for life is infectious. Being around you makes everything feel more exciting and possible.</div>
-          </div>
+        <div id="step-3" class="step-container hidden">
+            <div class="glass-card max-w-3xl w-full">
+                <h2 class="title-font gradient-text mb-6 text-4xl text-center">A Few Things I Adore About You</h2>
+                <div class="bento-grid">
+                    <div class="bento-card bento-span-2">
+                        <h3 class="font-bold text-lg mb-1 text-pink-300">✨ Your Pure Kindness</h3>
+                        <p class="text-sm text-gray-400">Nuv chupinche aa kindess a genuine care wah andarini akattukontai anthe baby beautiful soul brighter the life.</p>
+                    </div>
+                    <div class="bento-card">
+                        <h3 class="font-bold text-lg mb-1 text-pink-300">😊 That Smile</h3>
+                        <p class="text-sm text-gray-400">Vammo dhani Gurinchi em ani cheppai evarni happy ipotharu ni smile , neynu complete melt ayipotha</p>
+                    </div>
+                    <div class="bento-card bento-span-2">
+                        <h3 class="font-bold text-lg mb-1 text-pink-300">🌟 Your Radiant Spirit</h3>
+                        <p class="text-sm text-gray-400">About your spirit niku telikunda nuvvey inspire chestav babe ni chuttu vunnavalni ,the passion you had about life is infectious</p>
+                    </div>
+                </div>
+                <div class="mt-8 text-center">
+                    <button class="pill-button step-button" data-next="4">Remember this?</button>
+                </div>
+            </div>
         </div>
-        <div style="display:flex;gap:12px;justify-content:center;margin-top:16px">
-          <button class="btn" data-next>Remember this?</button>
+
+        <div id="step-4" class="step-container hidden">
+            <div class="glass-card max-w-xl w-full">
+                <h2 class="title-font gradient-text mb-6 text-4xl text-center">That One Time...</h2>
+
+                <div id="polaroid" class="bg-white p-2 shadow-2xl mx-auto mb-6 w-fit transform -rotate-3 cursor-pointer transition-transform duration-300 ease-out">
+                    <img src="https://share.google/images/Lv4OvxcAIK3NDqznA" alt="A cherished memory" class="w-full h-auto max-w-xs object-cover" />
+                    <p class="text-sm text-center text-gray-800 p-2 font-serif italic">Our favorite memory.</p>
+                </div>
+
+                <p class="text-gray-300 text-center mb-6">Every moment with you **Really so special for me baby** the days we fight we argue we understand we smile we laugh finally we happy together for me don't know how long we might be together its all upto anyway please never leaving again **I love you prajju so much im sorry.**</p>
+                <div class="text-center">
+                    <button class="pill-button step-button" data-next="5">One last thing...</button>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Step 4 -->
-      <div class="card center step hidden" data-step="4" style="opacity:0;">
-        <h2>That One Time...</h2>
-        <div style="margin:18px 0;">
-          <div class="polaroid" id="polaroid">
-            <img src="https://i.ibb.co/6Z6XgCg/crush.webp" alt="Our memory">
-            <div class="caption">Our favorite memory.</div>
-          </div>
+        <div id="step-5" class="step-container hidden">
+            <div class="glass-card text-center max-w-sm">
+                <div class="text-6xl mb-4">🎂</div>
+                <h2 class="title-font gradient-text mb-4 text-4xl">My Wish For You</h2>
+                <p class="text-gray-300 mb-8">May the next year bring you all the love, success, and pure happiness you so rightfully deserve. May your dreams soar higher than ever.</p>
+                
+                <p id="final-message" class="title-font gradient-text text-4xl mt-12 mb-8 opacity-0 translate-y-8 absolute w-full left-0 hidden">
+                    Happy Birthday, my crush! ❤️
+                </p>
+
+                <button id="finale-button" class="pill-button">Celebrate!</button>
+            </div>
         </div>
-        <p>Every moment with you feels like a scene from a movie I'd watch on repeat.</p>
-        <div style="display:flex;gap:12px;justify-content:center">
-          <button class="btn" data-next>One last thing...</button>
-        </div>
-      </div>
 
-      <!-- Step 5 -->
-      <div class="card center step hidden" data-step="5" style="opacity:0;">
-        <div class="icon-large" id="cakeIcon">🎂</div>
-        <h1>My Wish For You</h1>
-        <p>May the next year bring you all the love, success, and pure happiness you so rightfully deserve. May your dreams soar higher than ever.</p>
-        <div id="finalMessage" style="margin-top:12px;min-height:48px;"></div>
-        <div style="display:flex;gap:12px;justify-content:center;margin-top:8px">
-          <button class="btn" id="celebrateBtn">Celebrate!</button>
-        </div>
-      </div>
+    </main>
 
-    </div>
-  </div>
 
-  <!-- Controls -->
-  <div class="controls">
-    <div class="mute-toggle" id="muteToggle" aria-pressed="false">🔊 Sound ON</div>
-  </div>
+    <script>
+        // --- 1. GLOBALS & UTILITIES ---
+        const totalSteps = 5;
+        let currentStep = 1;
+        const steps = Array.from({ length: totalSteps }, (_, i) => document.getElementById(`step-${i + 1}`));
+        const progressBar = document.getElementById('progress-bar');
+        const contentArea = document.getElementById('content-area');
 
-  <script>
-    /*****************************************
-     * Basic state + utility
-     *****************************************/
-    const steps = Array.from(document.querySelectorAll('.step'));
-    let current = 0; // 0-based index
-    const total = steps.length;
-    const progressBar = document.getElementById('progressBar');
+        // --- 2. GSAP ANIMATION AND NAVIGATION LOGIC ---
 
-    function setProgress(i) {
-      const pct = Math.round(((i)/ (total - 1)) * 100);
-      progressBar.style.width = pct + '%';
-    }
-    setProgress(0);
+        // Sets the initial state for an incoming step (faded, scaled down, slightly offset)
+        function setInitialStepState(step) {
+            gsap.set(step, { autoAlpha: 0, scale: 0.95, y: 20, pointerEvents: 'none' });
+            // Stagger set for internal elements (text, buttons, etc.)
+            gsap.set(step.querySelectorAll('h1, h2, h3, p, button, .bento-grid, #polaroid'), { autoAlpha: 0, y: 15 });
+        }
 
-    // Simple show/hide with GSAP
-    function gotoStep(index) {
-      if (index < 0 || index >= steps.length) return;
-      const prev = steps[current];
-      const next = steps[index];
-      if (prev === next) return;
-      // animate out prev
-      gsap.timeline()
-        .to(prev, {duration:.45, opacity:0, scale:.96, y:20, ease:"power2.inOut", onComplete: ()=> prev.classList.add('hidden')})
-        .fromTo(next, {opacity:0, scale:1.03, y:24}, {duration:.7, opacity:1, scale:1, y:0, ease:"power3.out", onStart: ()=> {
-          next.classList.remove('hidden');
-        }});
-      current = index;
-      setProgress(current);
-    }
+        // Animates a step in and its internal elements with a stagger
+        function animateStepIn(step) {
+            step.classList.remove('hidden');
+            gsap.to(step, {
+                autoAlpha: 1,
+                scale: 1,
+                y: 0,
+                duration: 0.8,
+                ease: "power3.out",
+                pointerEvents: 'auto',
+                onComplete: () => {
+                    // Stagger animation for internal elements
+                    gsap.to(step.querySelectorAll('h1, h2, h3, p, button, .bento-grid, #polaroid'), {
+                        autoAlpha: 1,
+                        y: 0,
+                        duration: 0.6,
+                        ease: "power2.out",
+                        stagger: 0.1
+                    });
 
-    // Next buttons
-    document.querySelectorAll('[data-next]').forEach(btn=>{
-      btn.addEventListener('click', (e)=>{
-        playClick();
-        gotoStep(Math.min(current+1, total-1));
-      });
-    });
+                    // Special: Start pulsating heart for Step 1
+                    if (currentStep === 1) {
+                        gsap.to('#heart-icon', {
+                            scale: 1.1,
+                            duration: 1.5,
+                            repeat: -1,
+                            yoyo: true,
+                            ease: "sine.inOut"
+                        });
+                    }
 
-    // Polaroid cursor parallax
-    const polaroid = document.getElementById('polaroid');
-    polaroid?.addEventListener('mousemove', (e)=>{
-      const r = polaroid.getBoundingClientRect();
-      const cx = r.left + r.width/2;
-      const cy = r.top + r.height/2;
-      const dx = (e.clientX - cx) / r.width;
-      const dy = (e.clientY - cy) / r.height;
-      polaroid.style.transform = `rotateY(${dx*8}deg) rotateX(${ -dy*6 }deg) translateZ(6px)`;
-    });
-    polaroid?.addEventListener('mouseleave', ()=> polaroid.style.transform='rotateY(0) rotateX(0)');
+                    // Special: Apply 3D polaroid hover effect for Step 4
+                    if (currentStep === 4) {
+                        setupPolaroidEffect();
+                    }
+                }
+            });
+        }
 
-    /*****************************************
-     * Sound system (WebAudio synthesized for copyright-free audio)
-     *****************************************/
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    let audioEnabled = true;
-    const muteToggle = document.getElementById('muteToggle');
-    muteToggle.addEventListener('click', ()=>{
-      audioEnabled = !audioEnabled;
-      muteToggle.textContent = audioEnabled ? '🔊 Sound ON' : '🔈 Muted';
-      muteToggle.setAttribute('aria-pressed', String(!audioEnabled));
-      if (!audioEnabled) audioCtx.suspend(); else audioCtx.resume();
-    });
+        // Animates a step out
+        function animateStepOut(step) {
+            return new Promise(resolve => {
+                // Animate out internal elements first
+                gsap.to(step.querySelectorAll('h1, h2, h3, p, button, .bento-grid, #polaroid'), {
+                    autoAlpha: 0,
+                    y: -10,
+                    duration: 0.3,
+                    ease: "power2.in"
+                });
 
-    // Click sound: short pitch envelope
-    function playClick(){
-      if (!audioEnabled) return;
-      try {
-        const now = audioCtx.currentTime;
-        const o = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        o.type = 'sine';
-        o.frequency.setValueAtTime(1200, now);
-        o.frequency.exponentialRampToValueAtTime(800, now + 0.03);
-        g.gain.setValueAtTime(0, now);
-        g.gain.linearRampToValueAtTime(0.12, now + 0.006);
-        g.gain.linearRampToValueAtTime(0.0001, now + 0.14);
-        o.connect(g);
-        g.connect(audioCtx.destination);
-        o.start(now);
-        o.stop(now + 0.16);
-      } catch(e){/*ignore*/ }
-    }
+                // Animate out the main card
+                gsap.to(step, {
+                    autoAlpha: 0,
+                    scale: 0.9,
+                    y: -10,
+                    duration: 0.5,
+                    ease: "power2.in",
+                    onComplete: () => {
+                        step.classList.add('hidden');
+                        resolve();
+                    }
+                });
+            });
+        }
 
-    // Soft ambient pad loop (two detuned saws, slow tremolo)
-    const masterGain = audioCtx.createGain();
-    masterGain.gain.value = 0.05;
-    masterGain.connect(audioCtx.destination);
+        // Update the progress bar
+        function updateProgressBar(step) {
+            const progress = (step - 1) / (totalSteps - 1); // 0% to 100%
+            gsap.to(progressBar, {
+                width: `${progress * 100}%`,
+                duration: 0.8,
+                ease: "power2.inOut"
+            });
+        }
 
-    // create pad only when not muted and once user interacts for auto-play policies
-    let padNodes = null;
-    function startPad(){
-      if (padNodes || !audioEnabled) return;
-      const now = audioCtx.currentTime;
-      // two oscillators detuned
-      const o1 = audioCtx.createOscillator();
-      const o2 = audioCtx.createOscillator();
-      o1.type='sine'; o2.type='sine';
-      o1.frequency.value = 220; // A3
-      o2.frequency.value = 277.18; // C#4 detune
-      const g1 = audioCtx.createGain(); g1.gain.value = 0.25;
-      const g2 = audioCtx.createGain(); g2.gain.value = 0.18;
+        // Navigation Handler
+        async function goToStep(nextStep) {
+            if (nextStep > totalSteps || nextStep < 1 || nextStep === currentStep) return;
 
-      // lowpass
-      const lp = audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 900;
-      // slow tremolo
-      const lfo = audioCtx.createOscillator(); lfo.type='sine'; lfo.frequency.value = 0.06;
-      const lfoGain = audioCtx.createGain(); lfoGain.gain.value = 0.6;
+            await animateStepOut(steps[currentStep - 1]);
 
-      o1.connect(g1); o2.connect(g2);
-      g1.connect(lp); g2.connect(lp);
-      lp.connect(masterGain);
+            currentStep = nextStep;
+            updateProgressBar(currentStep);
+            
+            // Ensure the new step is correctly positioned and its initial state is set
+            setInitialStepState(steps[currentStep - 1]);
+            animateStepIn(steps[currentStep - 1]);
+        }
 
-      lfo.connect(lfoGain);
-      lfoGain.connect(g1.gain);
-      lfoGain.connect(g2.gain);
-
-      // start
-      o1.start(now); o2.start(now); lfo.start(now);
-      // gentle fade-in
-      masterGain.gain.setValueAtTime(0.0001, now);
-      masterGain.gain.linearRampToValueAtTime(0.05, now + 2.0);
-
-      padNodes = {o1,o2,lfo,g1,g2,lp};
-    }
-
-    function stopPad(){
-      if (!padNodes) return;
-      const now = audioCtx.currentTime;
-      masterGain.gain.cancelScheduledValues(now);
-      masterGain.gain.setValueAtTime(masterGain.gain.value, now);
-      masterGain.gain.linearRampToValueAtTime(0.0001, now + 1.4);
-      // stop oscillators after fade
-      setTimeout(()=>{
-        try { padNodes.o1.stop(); padNodes.o2.stop(); padNodes.lfo.stop(); } catch(e){}
-        padNodes = null;
-      },1600);
-    }
-
-    // Start pad on first user interaction (to comply with autoplay)
-    document.addEventListener('click', function firstStart(){
-      startPad();
-      document.removeEventListener('click', firstStart);
-    });
-
-    /*****************************************
-     * Three.js: floating hearts
-     *****************************************/
-    const canvas = document.getElementById('three-bg');
-    const renderer = new THREE.WebGLRenderer({canvas:canvas, alpha:true, antialias:true});
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 5000);
-    camera.position.set(0,0,120);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.outputEncoding = THREE.sRGBEncoding;
-
-    // lights
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x220022, 0.65);
-    scene.add(hemi);
-    const dir = new THREE.DirectionalLight(0xffd1e7, 0.85);
-    dir.position.set(0.6, 1, 0.8);
-    scene.add(dir);
-
-    // heart shape function
-    function createHeartShape(scale=1){
-      const x = 0, y = 0;
-      const heart = new THREE.Shape();
-      heart.moveTo(x, y + 5*scale);
-      heart.bezierCurveTo(x, y+5*scale, x-5*scale, y+2*scale, x-5*scale, y-2*scale);
-      heart.bezierCurveTo(x-5*scale, y-7*scale, x, y-10*scale, x, y-14*scale);
-      heart.bezierCurveTo(x, y-10*scale, x+5*scale, y-7*scale, x+5*scale, y-2*scale);
-      heart.bezierCurveTo(x+5*scale, y+2*scale, x, y+5*scale, x, y+5*scale);
-      return heart;
-    }
-
-    // create a set of hearts
-    const heartGroup = new THREE.Group();
-    scene.add(heartGroup);
-    const heartCount = 22;
-    const hearts = [];
-    for(let i=0;i<heartCount;i++){
-      const scale = THREE.MathUtils.randFloat(0.6, 2.6);
-      const shape = createHeartShape(1.6 * scale);
-      const extrudeSettings = { depth: 2 + Math.random()*6, bevelEnabled:true, bevelThickness:0.8, bevelSize:0.6, bevelSegments:2 };
-      const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-      geom.computeVertexNormals();
-      const hue = THREE.MathUtils.randFloat(330,350);
-      const mat = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(`hsl(${hue} 80% ${THREE.MathUtils.randFloat(45,60)}%)`),
-        metalness: 0.18,
-        roughness: 0.42,
-        emissive: new THREE.Color(`hsl(${hue} 60% ${THREE.MathUtils.randFloat(3,8)}%)`),
-        emissiveIntensity: 0.05,
-        flatShading:false
-      });
-      const mesh = new THREE.Mesh(geom, mat);
-      mesh.castShadow = false;
-      mesh.receiveShadow = false;
-      mesh.position.set(THREE.MathUtils.randFloatSpread(240), THREE.MathUtils.randFloatSpread(140), THREE.MathUtils.randFloat(-40, 60));
-      mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
-      mesh.scale.setScalar(THREE.MathUtils.randFloat(0.7, 1.8));
-      heartGroup.add(mesh);
-      hearts.push({
-        mesh,
-        baseY:mesh.position.y,
-        offset: Math.random()*Math.PI*2,
-        speed: THREE.MathUtils.randFloat(0.3,1.0),
-        swirlAngle: Math.random()*Math.PI*2
-      });
-    }
-
-    // resize handler
-    window.addEventListener('resize', ()=>{
-      camera.aspect = window.innerWidth/window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    // animate hearts
-    let tStart = performance.now();
-    let finalTriggered = false;
-    function animate(){
-      const t = (performance.now()-tStart)/1000;
-      // subtle group drift and rotation
-      heartGroup.rotation.y = Math.sin(t*0.05) * 0.04;
-      heartGroup.position.x = Math.sin(t*0.12) * 6;
-      // per-heart float
-      hearts.forEach((h, idx)=>{
-        const m = h.mesh;
-        m.position.y = h.baseY + Math.sin(t*h.speed + h.offset) * (6 + idx%3);
-        m.rotation.x += 0.002 * (0.5 + h.speed*0.4);
-        m.rotation.y += 0.0015 * (0.8 + h.speed*0.6);
-      });
-      renderer.render(scene, camera);
-      requestAnimationFrame(animate);
-    }
-    animate();
-
-    /*****************************************
-     * Finale: confetti + hearts swirl out
-     *****************************************/
-    const celebrateBtn = document.getElementById('celebrateBtn');
-    const finalMessageNode = document.getElementById('finalMessage');
-
-    celebrateBtn.addEventListener('click', async function(){
-      playClick();
-      // disable button
-      celebrateBtn.setAttribute('disabled','');
-      gsap.to(celebrateBtn, {duration:.5, opacity:0, scale:.96, ease:'power2.out'});
-
-      // show final text
-      await new Promise(r => setTimeout(r, 350));
-      finalMessageNode.innerHTML = `<h2 style="font-family:Playfair Display, serif; margin:0; color:transparent; background-clip:text; -webkit-background-clip:text; background-image: linear-gradient(90deg,#ffd5ea,#ffecf5);">Happy Birthday, my crush! ❤️</h2>`;
-
-      // animate text in
-      gsap.fromTo(finalMessageNode, {y:24, opacity:0}, {y:0, opacity:1, duration:.9, ease:'power3.out'});
-
-      // powerful corner bursts then gentle shower with emoji and hearts
-      const duration = 5 * 1000;
-      // explosions from bottom corners
-      confetti({
-        particleCount: 60,
-        startVelocity: 40,
-        spread:120,
-        origin: { x: 0.03, y: 0.9 },
-        ticks: 180,
-      });
-      confetti({
-        particleCount: 60,
-        startVelocity: 42,
-        spread:120,
-        origin: { x: 0.97, y: 0.9 },
-        ticks: 180,
-      });
-
-      // continuous gentle multi-type shower
-      const end = Date.now() + duration;
-      (function frame(){
-        confetti({
-          particleCount: 18,
-          startVelocity: 8,
-          spread: 50,
-          origin: { x: Math.random(), y: Math.random() * 0.6 },
-          shapes: ['square','circle'],
-          scalar: Math.random() * 0.6 + 0.6,
+        // Attach event listeners to all step buttons
+        document.querySelectorAll('.step-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const next = parseInt(button.dataset.next);
+                goToStep(next);
+            });
         });
-        // emoji confetti: use tiny text-based particles by drawing images — canvas-confetti supports images via particleFunction in advanced usage,
-        // but to keep single-file simple we'll emit a few stars/hearts as text-shaped via the 'shape' param isn't supported; instead, we sprinkle more colorful pieces.
-        if (Date.now() < end) {
-          setTimeout(frame, 300 + Math.random()*220);
-        }
-      })();
 
-      // Hearts final swirl: animate hearts to swirl out & float up then fade
-      finalTriggered = true;
-      hearts.forEach((h, i) => {
-        const m = h.mesh;
-        const delay = i * 0.04;
-        const dir = (i%2===0)?1:-1;
-        gsap.to(m.position, {
-          duration: 3.2,
-          delay,
-          x: m.position.x + dir * THREE.MathUtils.randFloat(60,140),
-          y: m.position.y + THREE.MathUtils.randFloat(120, 240),
-          z: m.position.z + THREE.MathUtils.randFloat(40, 180),
-          ease: "power2.inOut"
+        // --- 3. POLAROID 3D HOVER EFFECT (Step 4) ---
+
+        function setupPolaroidEffect() {
+            const polaroid = document.getElementById('polaroid');
+            
+            // Parallax/Tilt effect on mouse movement
+            contentArea.addEventListener('mousemove', (e) => {
+                const rect = polaroid.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const x = e.clientX - centerX;
+                const y = e.clientY - centerY;
+
+                // Max tilt angles
+                const maxTilt = 10;
+                const rotateX = -y / centerY * maxTilt;
+                const rotateY = x / centerX * maxTilt;
+
+                gsap.to(polaroid, {
+                    rotationX: rotateX,
+                    rotationY: rotateY,
+                    x: x * 0.05, // Subtle parallax movement
+                    y: y * 0.05,
+                    ease: "power1.out",
+                    duration: 0.5
+                });
+            });
+            
+            // Reset on mouse leave (if it was attached to polaroid only)
+            // Using contentArea for broader effect, so this might be skipped or simplified
+            polaroid.addEventListener('mouseleave', () => {
+                 gsap.to(polaroid, {
+                    rotationX: 0,
+                    rotationY: 0,
+                    x: 0,
+                    y: 0,
+                    ease: "power2.out",
+                    duration: 0.8
+                });
+            });
+
+            // Initial 3D tilt set up
+            gsap.set(polaroid, { transformStyle: "preserve-3d" });
+        }
+
+
+        // --- 4. THREE.JS 3D FLOATING HEARTS (Layer 2) ---
+
+        let scene, camera, renderer, hearts = [];
+        const heartCount = 25;
+        const heartRadius = 0.5;
+        const container = document.getElementById('three-container');
+
+        function initThree() {
+            // Setup Scene, Camera, Renderer
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+
+            camera.position.z = 25; // Viewpoint
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+            scene.add(ambientLight);
+            const pointLight = new THREE.PointLight(0xffffff, 1.5);
+            pointLight.position.set(10, 10, 10);
+            scene.add(pointLight);
+
+            // Heart Geometry (simplified for a quick, approximate heart shape)
+            const shape = new THREE.Shape();
+            shape.moveTo(0, 0.35);
+            shape.bezierCurveTo(0.1, 0.6, 0.5, 0.6, 0.5, 0.35);
+            shape.bezierCurveTo(0.5, 0.1, 0.3, 0, 0, -0.2);
+            shape.bezierCurveTo(-0.3, 0, -0.5, 0.1, -0.5, 0.35);
+            shape.bezierCurveTo(-0.5, 0.6, -0.1, 0.6, 0, 0.35);
+
+            const extrudeSettings = {
+                depth: 0.1,
+                bevelEnabled: true,
+                bevelSegments: 2,
+                steps: 2,
+                bevelSize: 0.05,
+                bevelThickness: 0.05
+            };
+            const heartGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+
+            // Create Hearts
+            for (let i = 0; i < heartCount; i++) {
+                const color = new THREE.Color().setHSL(Math.random() * 0.1 + 0.9, 0.8, Math.random() * 0.2 + 0.7); // Pink/Red Hues
+                const material = new THREE.MeshPhongMaterial({
+                    color: color,
+                    shininess: 90,
+                    specular: 0xffffff
+                });
+                const heart = new THREE.Mesh(heartGeometry, material);
+                
+                // Random position in a box centered on origin
+                heart.position.set(
+                    (Math.random() - 0.5) * 40,
+                    (Math.random() - 0.5) * 40,
+                    (Math.random() - 0.5) * 40
+                );
+                
+                // Random size and rotation
+                const scale = Math.random() * 0.8 + 0.5;
+                heart.scale.set(scale, scale, scale);
+                heart.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+
+                // Store initial sine wave offset for independent motion
+                heart.userData.offset = Math.random() * 100;
+
+                scene.add(heart);
+                hearts.push(heart);
+            }
+
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animateHearts(time) {
+            requestAnimationFrame(() => animateHearts(time + 0.01)); // Increase time for faster animation
+            
+            // Loop through hearts for gentle drift and rotation
+            hearts.forEach((heart, index) => {
+                // Subtle rotation
+                heart.rotation.x += 0.001 * heart.scale.x;
+                heart.rotation.y += 0.0015 * heart.scale.x;
+
+                // Gentle sine wave motion (drift)
+                const offset = heart.userData.offset;
+                heart.position.y += Math.sin(time / 5 + offset) * 0.005;
+                heart.position.x += Math.sin(time / 8 + offset) * 0.003;
+            });
+            
+            renderer.render(scene, camera);
+        }
+
+        // --- 5. FINALE SEQUENCE (Step 5 Click) ---
+
+        function startFinale() {
+            const button = document.getElementById('finale-button');
+            const message = document.getElementById('final-message');
+            
+            // 1. Disable button & fade out
+            button.disabled = true;
+            gsap.to(button, { autoAlpha: 0, duration: 0.5 });
+            
+            // 2. Final message appears
+            message.classList.remove('hidden');
+            gsap.to(message, {
+                autoAlpha: 1,
+                y: 0,
+                duration: 1.5,
+                ease: "elastic.out(1, 0.5)",
+                delay: 0.5
+            });
+
+            // 3. Confetti Explosion
+            startConfettiSequence();
+
+            // 4. 3D Hearts Swirl Out
+            swirlHeartsFinale();
+        }
+
+        function swirlHeartsFinale() {
+            hearts.forEach((heart, index) => {
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 50 + Math.random() * 20; // Swirl far out
+                const targetX = Math.cos(angle) * distance;
+                const targetY = Math.sin(angle) * distance + 50; // Swirl up off screen
+                const targetZ = heart.position.z + 50; // Swirl deeper/further
+
+                gsap.to(heart.position, {
+                    x: targetX,
+                    y: targetY,
+                    z: targetZ,
+                    duration: 4,
+                    delay: 0.5,
+                    ease: "power2.in",
+                    onComplete: () => {
+                        scene.remove(heart); // Remove from scene after animation
+                    }
+                });
+
+                // Fade out material
+                 gsap.to(heart.material, {
+                    opacity: 0,
+                    duration: 3,
+                    delay: 1,
+                    ease: "power1.in",
+                    onStart: () => {
+                        heart.material.transparent = true;
+                    }
+                });
+            });
+        }
+
+        function startConfettiSequence() {
+            // First: Powerful corner bursts (3 blasts each)
+            const duration = 5 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function fire(particleRatio, opts) {
+                confetti(Object.assign({}, defaults, opts, {
+                    particleCount: Math.floor(250 * particleRatio)
+                }));
+            }
+
+            // Burst 1: Bottom-Left
+            setTimeout(() => {
+                fire(0.25, { origin: { x: 0, y: 1 } });
+            }, 50);
+            
+            // Burst 2: Bottom-Right
+            setTimeout(() => {
+                fire(0.25, { origin: { x: 1, y: 1 } });
+            }, 300);
+
+            // Second: Continuous gentle shower of standard and emoji confetti
+            const interval = setInterval(function() {
+                const time = Date.now();
+                if (time > animationEnd) {
+                    return clearInterval(interval);
+                }
+
+                // Standard Colorful Confetti
+                fire(0.01, {
+                    particleCount: 20,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 }
+                });
+                fire(0.01, {
+                    particleCount: 20,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 }
+                });
+
+                // Emoji Confetti
+                fire(0.005, {
+                    particleCount: 10,
+                    angle: 90,
+                    spread: 80,
+                    origin: { x: Math.random() },
+                    shapes: ['heart', 'star'],
+                    scalar: 1.5
+                });
+            }, 250);
+        }
+
+        // Attach finale event listener
+        document.getElementById('finale-button').addEventListener('click', startFinale);
+
+
+        // --- 6. INITIALIZATION ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Three.js hearts background
+            initThree();
+            animateHearts(0);
+
+            // Pre-set all steps but the first one
+            steps.slice(1).forEach(setInitialStepState);
+            
+            // Animate in the first step
+            animateStepIn(steps[0]);
+            updateProgressBar(currentStep);
         });
-        gsap.to(m.rotation, {duration:3.4, delay, x: m.rotation.x + Math.PI*dir, y: m.rotation.y + Math.PI*dir, ease:'power2.inOut'});
-        // fade material by reducing emissive and roughness (simulate fade)
-        gsap.to(m.material, {duration:3.2, delay, opacity:0, onUpdate:function(){
-          m.material.transparent = true;
-        }});
-        // eventually remove mesh to keep renderer light
-        setTimeout(()=>{ try{ heartGroup.remove(m); }catch(e){} }, 4200 + delay*1000);
-      });
-
-      // gentle celebratory melody (tiny arpeggio)
-      if (audioEnabled){
-        playClick();
-        const now = audioCtx.currentTime;
-        const notes = [392, 523.25, 659.25, 783.99]; // G4, C5, E5, G5
-        let idx = 0;
-        const gMaster = audioCtx.createGain(); gMaster.gain.value = 0.08; gMaster.connect(audioCtx.destination);
-        function playNote(){
-          if (idx >= notes.length) return;
-          const o = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          o.type='triangle';
-          o.frequency.value = notes[idx];
-          gain.gain.setValueAtTime(0.0001, now + idx*0.18);
-          gain.gain.linearRampToValueAtTime(0.1, now + idx*0.18 + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + idx*0.18 + 0.9);
-          o.connect(gain); gain.connect(gMaster);
-          o.start(now + idx*0.18);
-          o.stop(now + idx*0.18 + 1.1);
-          idx++;
-          if (idx < notes.length) setTimeout(playNote, 180);
-        }
-        playNote();
-      }
-    });
-
-    /*****************************************
-     * Accessibility: keyboard navigation for steps (Left/Right)
-     *****************************************/
-    window.addEventListener('keydown', (e)=>{
-      if (e.key === 'ArrowRight' || e.key === 'Enter') {
-        playClick();
-        gotoStep(Math.min(current+1, total-1));
-      } else if (e.key === 'ArrowLeft') {
-        playClick();
-        gotoStep(Math.max(current-1, 0));
-      }
-    });
-
-    /*****************************************
-     * Extra polish: subtle entrance animation on load
-     *****************************************/
-    window.addEventListener('load', ()=>{
-      steps.forEach((s, i) => {
-        if (i === 0) {
-          gsap.fromTo(s, {opacity:0, y:18, scale:1.02}, {opacity:1, y:0, scale:1, duration:1.1, ease:'expo.out', delay:0.2});
-        } else {
-          s.classList.add('hidden');
-        }
-      });
-      // Slightly nudge the aurora for dramatic effect
-      gsap.to('.aurora', {duration:4, scale:1.01, y:-6, repeat:-1, yoyo:true, ease:'sine.inOut'});
-    });
-
-    // Make sure audio context resumes on user gesture (some browsers block otherwise)
-    document.addEventListener('pointerdown', async () => {
-      if (audioCtx.state === 'suspended') try{ await audioCtx.resume(); } catch(e){}
-    }, {once:true});
-
-  </script>
+    </script>
 </body>
 </html>
